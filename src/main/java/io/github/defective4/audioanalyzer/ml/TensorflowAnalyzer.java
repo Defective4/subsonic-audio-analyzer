@@ -1,60 +1,42 @@
 package io.github.defective4.audioanalyzer.ml;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class TensorflowAnalyzer implements AutoCloseable {
+public class TensorflowAnalyzer {
+    private final String analyzerEndpoint;
 
-    private static final String ANALYZER_PY = "/analyzer.py";
-    private static final String BASH = "/bin/bash";
-    private final Path pyFile;
-    private final String venv;
-
-    public TensorflowAnalyzer(String venv) throws IOException {
-        this.venv = venv;
-        pyFile = Files.createTempFile("aa", ".py");
-        prepare();
+    public TensorflowAnalyzer(String analyzerEndpoint) throws MalformedURLException {
+        URI.create(analyzerEndpoint).toURL();
+        this.analyzerEndpoint = analyzerEndpoint;
     }
 
-    public JsonObject analyze(File file) throws IOException, InterruptedException {
-        Process proc = createProcess(file.getPath());
-        try (Reader reader = proc.errorReader()) {
-            while (true) {
-                if (reader.read() < 0) break;
+    public Map<String, Float> requestAnalysis(String filePath) throws IOException {
+        HttpURLConnection con = null;
+        try {
+            con = (HttpURLConnection) URI
+                    .create(analyzerEndpoint + "?audioPath=" + URLEncoder.encode(filePath, StandardCharsets.UTF_8))
+                    .toURL().openConnection();
+            Map<String, Float> map = new HashMap<>();
+            try (Reader reader = new InputStreamReader(con.getInputStream())) {
+                JsonObject obj = JsonParser.parseReader(reader).getAsJsonObject();
+                obj.asMap().forEach((k, v) -> map.put(k, v.getAsFloat()));
             }
-        }
-        if (proc.waitFor() != 0) throw new IOException("Process exited with failure");
-        try (Reader reader = proc.inputReader()) {
-            return JsonParser.parseReader(reader).getAsJsonObject();
+            return Collections.unmodifiableMap(map);
         } finally {
-            proc.destroy();
-        }
-    }
-
-    @Override
-    public void close() {
-        pyFile.toFile().delete();
-    }
-
-    private Process createProcess(String file) throws IOException {
-        String[] args = { BASH, "-c",
-                String.format("source \"%s/bin/activate\"; python3 \"%s\" \"%s\"", venv, pyFile, file) };
-        Process proc = new ProcessBuilder(args).start();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> proc.destroyForcibly()));
-        return proc;
-    }
-
-    private void prepare() throws IOException {
-        try (InputStream in = getClass().getResourceAsStream(ANALYZER_PY)) {
-            Files.copy(in, pyFile, StandardCopyOption.REPLACE_EXISTING);
+            if (con != null) con.disconnect();
         }
     }
 }
