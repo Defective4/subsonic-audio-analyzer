@@ -10,8 +10,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
@@ -19,6 +22,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 import io.github.defective4.audioanalyzer.subsonic.model.SubsonicResponse;
 
 public class SubsonicAPI {
@@ -45,6 +49,27 @@ public class SubsonicAPI {
 
     public SubsonicResponse getAlbumList(int limit, int offset) throws IOException {
         return request("getAlbumList", Map.of("type", "newest", "size", limit, "offset", offset));
+    }
+
+    public List<Entity> getAllAlbums() throws IOException {
+        List<Entity> albums = new ArrayList<>();
+        int offset = 0;
+        while (true) {
+            Entity[] as = getAlbumList(500, offset).albumList().album();
+            Collections.addAll(albums, as);
+            if (as.length == 500)
+                offset += 500;
+            else
+                break;
+        }
+        return Collections.unmodifiableList(albums);
+    }
+
+    public List<Entity> getAllMusic() throws IOException {
+        List<Entity> songs = new ArrayList<>();
+        for (Entity album : getAllAlbums())
+            Collections.addAll(songs, getMusicDirectory(album.id()).directory().child());
+        return Collections.unmodifiableList(songs);
     }
 
     public SubsonicResponse getMusicDirectory(String id) throws IOException {
@@ -86,7 +111,6 @@ public class SubsonicAPI {
                     .toURL().openConnection();
             try (Reader reader = new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8)) {
                 JsonElement json = JsonParser.parseReader(reader).getAsJsonObject().get("subsonic-response");
-                System.out.println(json);
                 return gson.fromJson(json, SubsonicResponse.class);
             }
         } finally {
