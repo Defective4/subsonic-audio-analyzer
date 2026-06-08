@@ -58,7 +58,7 @@ public class CLI {
         db = new Database(jdbcURL);
         api = new SubsonicAPI(username, password, url);
         analyzer = new TensorflowAnalyzer(analyzerURL);
-        modelLoader = new ModelLoader(Path.of("./models"));
+        modelLoader = new ModelLoader(Path.of("./models/other"));
         logger.info("Loaded %s models with %s classes".formatted(modelLoader.getLoadedModels().size(),
                 modelLoader.getLoadedModels().values().stream().mapToInt(data -> data.classes().length).sum()));
     }

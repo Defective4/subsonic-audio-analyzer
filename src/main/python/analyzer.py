@@ -1,18 +1,15 @@
 from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
 import numpy as np
 from os import listdir
-from sys import stdout
 from fastapi import FastAPI
 api = FastAPI()
 
 
 @api.get("/analyze")
 def analyze(audioPath: str):
-    modelRoot = "./models"
-    mtgRoot = modelRoot+"/mtg/"
-    models = listdir(modelRoot)
-    models.remove("discogs-effnet-bs64-1.pb")
-    models.remove("mtg")
+    moodRoot = "./models/mood/"
+    otherRoot = "./models/other/"
+    models = listdir(moodRoot)
 
     invertedModels = ["mood_happy-discogs-effnet-1.pb",
                       "mood_aggressive-discogs-effnet-1.pb",
@@ -32,21 +29,21 @@ def analyze(audioPath: str):
     }
     for model in models:
         score = round(float(np.mean(TensorflowPredict2D(
-            graphFilename=modelRoot+"/"+model,
+            graphFilename=moodRoot+"/"+model,
             output="model/Softmax")(ebModel)[:, 1])),
             4)
         if model in invertedModels:
             score = round(1-score, 4)
         modelScores["scores"][model] = score
 
-    predictions = np.mean(TensorflowPredict2D(graphFilename=mtgRoot+"mtg_jamendo_instrument-discogs-effnet-1.pb",
+    predictions = np.mean(TensorflowPredict2D(graphFilename=otherRoot+"mtg_jamendo_instrument-discogs-effnet-1.pb",
                                               input="model/Placeholder",
                                               output="model/Sigmoid"
                                               )(ebModel), axis=0)
     for val in predictions:
         modelScores["instruments"].append(float(val))
 
-    predictions = np.mean(TensorflowPredict2D(graphFilename=mtgRoot+"mtg_jamendo_moodtheme-discogs-effnet-1.pb",
+    predictions = np.mean(TensorflowPredict2D(graphFilename=otherRoot+"mtg_jamendo_moodtheme-discogs-effnet-1.pb",
                                               input="model/Placeholder",
                                               output="model/Sigmoid"
                                               )(ebModel), axis=0)
@@ -54,7 +51,7 @@ def analyze(audioPath: str):
         modelScores["moods"].append(float(val))
 
     predictions = np.mean(TensorflowPredict2D(
-        graphFilename=mtgRoot+"genre_discogs400-discogs-effnet-1.pb",
+        graphFilename=otherRoot+"genre_discogs400-discogs-effnet-1.pb",
         input="serving_default_model_Placeholder",
         output="PartitionedCall"
     )(ebModel), axis=0)
