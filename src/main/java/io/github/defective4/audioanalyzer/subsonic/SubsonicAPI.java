@@ -18,6 +18,8 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -56,11 +58,13 @@ public class SubsonicAPI {
         return request("getAlbumList", Map.of("type", "newest", "size", limit, "offset", offset));
     }
 
-    public List<Entity> getAllAlbums() throws IOException {
+    public List<Entity> getAllAlbums(Logger logger) throws IOException {
         List<Entity> albums = new ArrayList<>();
         int offset = 0;
+        int i = 0;
         while (true) {
             Entity[] as = getAlbumList(500, offset).albumList().album();
+            logger.info("Downloaded chunk %s".formatted(++i));
             Collections.addAll(albums, as);
             if (as.length == 500)
                 offset += 500;
@@ -70,10 +74,14 @@ public class SubsonicAPI {
         return Collections.unmodifiableList(albums);
     }
 
-    public List<Entity> getAllMusic() throws IOException {
+    public List<Entity> getAllMusic(Logger logger) throws IOException {
         List<Entity> songs = new ArrayList<>();
-        for (Entity album : getAllAlbums())
+        List<Entity> albums = getAllAlbums(logger);
+        int i = 0;
+        for (Entity album : albums) {
+            if (++i % 100 == 0) logger.info("Downloaded metadata for %s out of %s albums".formatted(i, albums.size()));
             Collections.addAll(songs, getMusicDirectory(album.id()).directory().child());
+        }
         return Collections.unmodifiableList(songs);
     }
 

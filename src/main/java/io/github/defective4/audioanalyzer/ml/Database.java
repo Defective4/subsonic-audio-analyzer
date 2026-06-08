@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import io.github.defective4.audioanalyzer.subsonic.model.Entity;
+
 public class Database {
     private final Connection con;
 
@@ -21,12 +23,13 @@ public class Database {
             st.execute("""
                     CREATE TABLE IF NOT EXISTS "moods" (
                     	"trackId"	TEXT NOT NULL,
+                    	"trackName" TEXT NOT NULL,
                     	PRIMARY KEY("trackId")
                     )""");
         }
     }
 
-    public void insertData(String track, Map<String, Float> values) throws SQLException {
+    public void insertData(Entity track, Map<String, Float> values) throws SQLException {
         List<String> columns = getColumns();
         for (Map.Entry<String, Float> entry : values.entrySet()) {
             String key = entry.getKey();
@@ -37,10 +40,13 @@ public class Database {
 
         List<Map.Entry<String, Float>> valList = new ArrayList<>(values.entrySet());
 
-        try (PreparedStatement st = con.prepareStatement("insert or replace into `moods` (trackId, %s) values (?, %s)".formatted(
-                String.join(", ", valList.stream().map(e -> e.getKey()).toArray(String[]::new)),
-                String.join(", ", valList.stream().map(e -> String.valueOf(e.getValue())).toArray(String[]::new))))) {
-            st.setString(1, track);
+        try (PreparedStatement st = con
+                .prepareStatement("insert or replace into `moods` (trackId, trackName, %s) values (?, ?, %s)".formatted(
+                        String.join(", ", valList.stream().map(e -> e.getKey()).toArray(String[]::new)),
+                        String.join(", ",
+                                valList.stream().map(e -> String.valueOf(e.getValue())).toArray(String[]::new))))) {
+            st.setString(1, track.id());
+            st.setString(2, track.title());
             st.executeUpdate();
         }
     }

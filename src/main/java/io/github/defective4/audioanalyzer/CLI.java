@@ -60,7 +60,7 @@ public class CLI {
             api.ping();
             logger.info("Logged in successfully!");
             logger.info("Downloading track lists...");
-            List<Entity> songs = api.getAllMusic();
+            List<Entity> songs = api.getAllMusic(logger);
             logger.info("Downloaded information about %s songs".formatted(songs.size()));
             logger.info("Starting analysis...");
 
@@ -69,19 +69,23 @@ public class CLI {
 
             for (int i = 0; i < songs.size(); i++) {
                 Entity song = songs.get(i);
-                logger.info(
-                        "Starting analysis of %s (%s) [%s/%s...]".formatted(song.title(), song.id(), i, songs.size()));
+                System.err.println();
+                logger.info("Starting analysis of %s (%s) [%s/%s]...".formatted(song.title(), song.id(), i + 1,
+                        songs.size()));
                 logger.info("Downloading %s...".formatted(song.id()));
                 Path target = Path.of(tmpDir.toString(), Path.of(song.path()).getFileName().toString());
-                try (InputStream in = api.download(song)) {
-                    Files.copy(in, target);
+                target.toFile().deleteOnExit();
+                try {
+                    try (InputStream in = api.download(song)) {
+                        Files.copy(in, target);
+                    }
+                    logger.info("Analyzing %s...".formatted(song.id()));
+                    Map<String, Float> response = analyzer.requestAnalysis(target.toString());
+                    logger.info("Storing results in database...");
+                    db.insertData(song, response);
                 } finally {
                     target.toFile().delete();
                 }
-                logger.info("Analyzing %s...".formatted(song.id()));
-                Map<String, Float> response = analyzer.requestAnalysis(target.toString());
-                logger.info("Storing results in database...");
-                db.insertData(song.id(), response);
             }
         } catch (Exception e) {
             logger.error("An error occured: " + e.getMessage());
