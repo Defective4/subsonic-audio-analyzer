@@ -28,7 +28,7 @@ import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 
 public class CLI {
 
-    private static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/analyze";
+    private static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
     private static final String DEFAULT_JDBC = "jdbc:sqlite:./mood.sqlite";
 
     private static final Options options = new Options()
@@ -44,8 +44,8 @@ public class CLI {
                     .argName("pass").required().build())
             .addOption(Option.builder("s").desc("Subsonic instance URL (Required)").longOpt("url").numberOfArgs(1)
                     .argName("url").required().build())
-            .addOption(Option.builder("t").desc("Essentia analyzer endpoint (Default " + DEFAULT_ESSENTIA + ")")
-                    .numberOfArgs(1).argName("endpoint url").build());
+            .addOption(Option.builder("t").desc("Essentia analyzer URL (Default " + DEFAULT_ESSENTIA + ")")
+                    .numberOfArgs(1).argName("url").build());
 
     private final TensorflowAnalyzer analyzer;
     private final SubsonicAPI api;
@@ -58,6 +58,9 @@ public class CLI {
         db = new Database(jdbcURL);
         api = new SubsonicAPI(username, password, url);
         analyzer = new TensorflowAnalyzer(analyzerURL);
+        logger.info("Pinging analyzer server...");
+        analyzer.ping();
+        logger.info("Analyzer server OK");
         modelLoader = new ModelLoader(Path.of("./models/other"));
         logger.info("Loaded %s models with %s classes".formatted(modelLoader.getLoadedModels().size(),
                 modelLoader.getLoadedModels().values().stream().mapToInt(data -> data.classes().length).sum()));
@@ -132,6 +135,7 @@ public class CLI {
             String subsonicURL = cli.getOptionValue('s');
             if (!subsonicURL.endsWith("/")) subsonicURL = subsonicURL + "/";
             String essentiaURL = cli.hasOption('t') ? cli.getOptionValue('t') : DEFAULT_ESSENTIA;
+            if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
             CLI prog = new CLI(jdbc, user, password.toCharArray(), subsonicURL, essentiaURL);
             if (cli.hasOption('a')) {

@@ -3,13 +3,13 @@ package io.github.defective4.audioanalyzer.ml;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 
 import io.github.defective4.audioanalyzer.ml.model.AnalysisResponse;
 
@@ -22,21 +22,18 @@ public class TensorflowAnalyzer {
         this.analyzerEndpoint = analyzerEndpoint;
     }
 
+    public void ping() throws IOException {
+        try (Reader reader = new InputStreamReader(URI.create(analyzerEndpoint + "ping").toURL().openStream())) {
+            if (!JsonParser.parseReader(reader).getAsJsonObject().get("status").getAsString().equalsIgnoreCase("ok"))
+                throw new IOException("Invalid response from the server");
+        }
+    }
+
     public AnalysisResponse requestAnalysis(String filePath) throws IOException {
-        HttpURLConnection con = null;
-        try {
-            con = (HttpURLConnection) URI
-                    .create(analyzerEndpoint + "?audioPath=" + URLEncoder.encode(filePath, StandardCharsets.UTF_8))
-                    .toURL().openConnection();
-//            try (Reader reader = new InputStreamReader(con.getInputStream())) {
-//                JsonObject obj = JsonParser.parseReader(reader).getAsJsonObject();
-//                obj.asMap().forEach((k, v) -> map.put(k.replace("-", "_").replace(".pb", ""), v.getAsFloat()));
-//            }
-            try (Reader reader = new InputStreamReader(con.getInputStream())) {
-                return gson.fromJson(reader, AnalysisResponse.class);
-            }
-        } finally {
-            if (con != null) con.disconnect();
+        try (Reader reader = new InputStreamReader(URI
+                .create(analyzerEndpoint + "analyze?audioPath=" + URLEncoder.encode(filePath, StandardCharsets.UTF_8))
+                .toURL().openStream())) {
+            return gson.fromJson(reader, AnalysisResponse.class);
         }
     }
 }

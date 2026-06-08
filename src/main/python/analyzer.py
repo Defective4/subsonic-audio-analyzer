@@ -5,6 +5,11 @@ from fastapi import FastAPI
 api = FastAPI()
 
 
+@api.get("/ping")
+def ping():
+    return {"status": "OK"}
+
+
 @api.get("/analyze")
 def analyze(audioPath: str):
     moodRoot = "./models/mood/"
