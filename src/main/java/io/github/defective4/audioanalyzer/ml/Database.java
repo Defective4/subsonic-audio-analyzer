@@ -34,12 +34,9 @@ public class Database {
                     	"genreName"       TEXT NOT NULL,
                     	PRIMARY KEY("trackId")
                     )""");
-            st.execute(
-                    "CREATE INDEX IF NOT EXISTS mood_1_IDX ON moods (mood)");
-            st.execute(
-                    "CREATE INDEX IF NOT EXISTS instrument_1_IDX ON moods (instrument)");
-            st.execute(
-                    "CREATE INDEX IF NOT EXISTS genre_1_IDX ON moods (genre)");
+            st.execute("CREATE INDEX IF NOT EXISTS mood_1_IDX ON moods (mood)");
+            st.execute("CREATE INDEX IF NOT EXISTS instrument_1_IDX ON moods (instrument)");
+            st.execute("CREATE INDEX IF NOT EXISTS genre_1_IDX ON moods (genre)");
         }
     }
 
@@ -96,7 +93,8 @@ public class Database {
 
     private void insertColumn(String columnName) throws SQLException {
         try (Statement st = con.createStatement()) {
-            st.execute("ALTER TABLE moods ADD %s REAL DEFAULT (0) NOT NULL;".formatted(columnName));
+            st.execute("ALTER TABLE moods ADD %s REAL DEFAULT (0) NOT NULL".formatted(columnName));
+            st.execute("CREATE INDEX %s_1_IDX ON moods (%s)".formatted(columnName, columnName));
         }
     }
 }
