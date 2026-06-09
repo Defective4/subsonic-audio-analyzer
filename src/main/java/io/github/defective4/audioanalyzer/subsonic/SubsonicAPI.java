@@ -100,6 +100,14 @@ public class SubsonicAPI {
         return request("ping", Map.of());
     }
 
+    public void updatePlaylist(String id, String songId, boolean isPublic) throws IOException {
+        Map<String, Object> map = new HashMap<>();
+        if (songId != null) map.put("songIdToAdd", songId);
+        map.put("playlistId", id);
+        map.put("public", isPublic);
+        request("updatePlaylist", map);
+    }
+
     private String computeToken(String salt) {
         return hash(new String(password) + salt);
     }
