@@ -5,3 +5,4 @@
 /.classpath
 /e
 *.sqlite
+/dependency-reduced-pom.xml
