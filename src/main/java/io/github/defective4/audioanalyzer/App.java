@@ -6,10 +6,14 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +34,8 @@ public class App {
     private final SubsonicAPI api;
     private final Database db;
     private final Logger logger = LoggerFactory.getLogger(CLI.class);
+    private final Random random = new Random();
+
     public App(String jdbcURL, String username, char[] password, String url, String analyzerURL)
             throws SQLException, IOException {
         this.analyzerURL = analyzerURL;
@@ -41,19 +47,34 @@ public class App {
         // checkAPI();
         int limit = 30;
         String id = "エキストラ·ヒーロー";
+        String mood = null;
+        String instrument = null;
+        String genre = null;
+
         Optional<Track> baseOp = Optional.empty();
-        baseOp = db.getTrackById(id);
-        if (!baseOp.isPresent()) {
-            logger.error("Track with id or name %s does not exist.");
-            return;
+//        baseOp = db.getTrackById(id);
+//        if (!baseOp.isPresent()) {
+//            logger.error("Track with id or name %s does not exist.");
+//            return;
+//        }
+
+        List<Track> tracks = new ArrayList<>(db.getAllTracks());
+        Collections.shuffle(tracks, random);
+        Stream<Track> stream = tracks.stream();
+        if (mood != null) stream = stream.filter(t -> t.mood().equalsIgnoreCase(mood));
+        if (instrument != null) stream = stream.filter(t -> t.instrument().equalsIgnoreCase(instrument));
+        if (genre != null) stream = stream.filter(t -> t.genre().equalsIgnoreCase(genre));
+
+        if (baseOp.isPresent()) {
+            Track base = baseOp.get();
+            stream = stream.sorted((t1, t2) -> {
+                double diff = calculateSimilarity(t1, base) - calculateSimilarity(t2, base);
+                return diff < 0 ? -1 : diff > 0 ? 1 : 0;
+            });
+            stream = stream.filter(track -> !track.id().equals(base.id()));
         }
 
-        Track base = baseOp.get();
-
-        List<Track> similar = db.getAllTracks().stream().sorted((t1, t2) -> {
-            double diff = calculateSimilarity(t1, base) - calculateSimilarity(t2, base);
-            return diff < 0 ? -1 : diff > 0 ? 1 : 0;
-        }).filter(track -> !track.id().equals(base.id())).limit(limit).toList();
+        List<Track> similar = stream.limit(limit).toList();
 
         System.out.println(similar.stream().map(Track::name).toList());
     }
