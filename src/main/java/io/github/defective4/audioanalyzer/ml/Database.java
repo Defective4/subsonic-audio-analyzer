@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +26,6 @@ public class Database {
                     	"trackName"       TEXT NOT NULL,
                     	"mood"            INTEGER NOT NULL,
                     	"moodName"        TEXT NOT NULL,
-                    	"instruments"      TEXT NOT NULL,
                     	"instrument"      INTEGER NOT NULL,
                     	"instrumentName"  TEXT NOT NULL,
                     	"genre"           INTEGER NOT NULL,
@@ -48,7 +46,7 @@ public class Database {
         return Collections.unmodifiableList(songs);
     }
 
-    public void insertData(Entity track, Map<String, Float> values, int[] instruments, int mood, String moodName,
+    public void insertData(Entity track, Map<String, Float> values, int mood, String moodName,
             int instrument, String instrumentName, int genre, String genreName) throws SQLException {
         List<String> columns = getColumns();
         for (Map.Entry<String, Float> entry : values.entrySet()) {
@@ -61,7 +59,7 @@ public class Database {
         List<Map.Entry<String, Float>> valList = new ArrayList<>(values.entrySet());
 
         try (PreparedStatement st = con.prepareStatement(
-                "insert or replace into `moods` (trackId, trackName, mood, moodName, instruments, instrument, instrumentName, genre, genreName, %s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, %s)"
+                "insert or replace into `moods` (trackId, trackName, mood, moodName, instrument, instrumentName, genre, genreName, %s) values (?, ?, ?, ?, ?, ?, ?, ?, %s)"
                         .formatted(String.join(", ", valList.stream().map(e -> e.getKey()).toArray(String[]::new)),
                                 String.join(", ", valList.stream().map(e -> String.valueOf(e.getValue()))
                                         .toArray(String[]::new))))) {
@@ -70,8 +68,6 @@ public class Database {
             st.setString(i++, track.title());
             st.setInt(i++, mood);
             st.setString(i++, moodName);
-            st.setString(i++,
-                    String.join(",", Arrays.stream(instruments).mapToObj(Integer::toString).toArray(String[]::new)));
             st.setInt(i++, instrument);
             st.setString(i++, instrumentName);
             st.setInt(i++, genre);

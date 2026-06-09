@@ -108,17 +108,15 @@ public class CLI {
                     int genre = response.genre();
                     String genreName = models.get("genres").classes()[genre];
 
-                    int[] instruments = response.instruments(3);
-                    String[] inames = new String[instruments.length];
-                    for (int j = 0; j < instruments.length; j++)
-                        inames[j] = models.get("instruments").classes()[instruments[j]];
-
                     logger.info(" Mood: %s".formatted(moodName));
-                    logger.info(" Instruments: %s".formatted(String.join(", ", inames)));
+                    logger.info(" Instrument: %s".formatted(instrumentName));
                     logger.info(" Genre: %s".formatted(genreName));
                     System.err.println();
-                    db.insertData(song, response.scoreMap(), instruments, mood, moodName, instrument, instrumentName,
-                            genre, genreName);
+                    db.insertData(song, response.scoreMap(), mood, moodName, instrument, instrumentName, genre,
+                            genreName);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
                 } finally {
                     target.toFile().delete();
                 }

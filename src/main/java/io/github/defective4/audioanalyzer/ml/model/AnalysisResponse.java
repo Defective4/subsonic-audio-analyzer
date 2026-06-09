@@ -17,16 +17,6 @@ public record AnalysisResponse(JsonObject scores, float[] instruments, float[] g
         return Collections.unmodifiableMap(scores);
     }
 
-    public int[] instruments(int limit) {
-        Map<Integer, Float> instrumentMaps = new HashMap<>();
-        for (int i = 0; i < instruments.length; i++) {
-            instrumentMaps.put(i, instruments[i]);
-        }
-        return instrumentMaps.entrySet().stream()
-                .sorted((e1, e2) -> (int) (e2.getValue() * 1000 - e1.getValue() * 1000)).limit(3)
-                .mapToInt(e -> e.getKey()).toArray();
-    }
-
     public int instrument() {
         return max(instruments);
     }
