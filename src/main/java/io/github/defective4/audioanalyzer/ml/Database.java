@@ -8,9 +8,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import io.github.defective4.audioanalyzer.ml.model.Track;
 import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 
 public class Database {
@@ -35,12 +38,38 @@ public class Database {
         }
     }
 
-    public List<String> getAllSongs() throws SQLException {
+    public List<String> getAllSongIDs() throws SQLException {
         List<String> songs = new ArrayList<>();
         try (Statement st = con.createStatement(); ResultSet set = st.executeQuery("select trackId from `moods`")) {
             while (set.next()) songs.add(set.getString(1));
         }
         return Collections.unmodifiableList(songs);
+    }
+
+    public List<Track> getAllTracks() throws SQLException {
+        List<Track> tracks = new ArrayList<>();
+        List<String> columns = getColumns();
+        try (Statement st = con.createStatement(); ResultSet set = st.executeQuery("select * from `moods`")) {
+            while (set.next()) {
+                tracks.add(trackFromResultSet(set, columns));
+            }
+        }
+        return Collections.unmodifiableList(tracks);
+    }
+
+    public Optional<Track> getTrackById(String id) throws SQLException {
+        List<String> cols = getColumns();
+        try (PreparedStatement st = con
+                .prepareStatement("select * from `moods` where `trackId` = ? or `trackName` = ?")) {
+            st.setString(1, id);
+            st.setString(2, id);
+            try (ResultSet set = st.executeQuery()) {
+                if (set.next()) {
+                    return Optional.of(trackFromResultSet(set, cols));
+                }
+                return Optional.empty();
+            }
+        }
     }
 
     public void insertData(Entity track, Map<String, Float> values, String moodName, String instrumentName,
@@ -86,5 +115,17 @@ public class Database {
             st.execute("ALTER TABLE moods ADD %s REAL DEFAULT (0) NOT NULL".formatted(columnName));
             st.execute("CREATE INDEX %s_1_IDX ON moods (%s)".formatted(columnName, columnName));
         }
+    }
+
+    private static Track trackFromResultSet(ResultSet set, List<String> cols) throws SQLException {
+        int i = 0;
+        String id = set.getString(++i);
+        String name = set.getString(++i);
+        String mood = set.getString(++i);
+        String instrument = set.getString(++i);
+        String genre = set.getString(++i);
+        Map<String, Float> scores = new HashMap<>();
+        for (String column : cols) scores.put(column, set.getFloat(column));
+        return new Track(id, name, mood, instrument, genre, Collections.unmodifiableMap(scores));
     }
 }
