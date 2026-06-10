@@ -44,29 +44,25 @@ public class App {
         api = new SubsonicAPI(username, password, url);
     }
 
-    public void groupTracks() throws SQLException, IOException {
-        // checkAPI();
-        int limit = 30;
-        String id = "Akiramenai ~ Don’t Give Up!";
-        String mood = null;
-        String instrument = null;
-        String genre = null;
-        String playlistName = null;
-        String replacePlaylist = "LKr5JjIEFBI5LodiuvjfAE";
+    public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
+            String playlistName, String replacePlaylist, int limit, boolean newPublic) throws SQLException, IOException {
+        checkAPI();
 
         Optional<Track> baseOp = Optional.empty();
-//        baseOp = db.getTrackById(id);
-//        if (!baseOp.isPresent()) {
-//            logger.error("Track with id or name %s does not exist.".formatted(id));
-//            return;
-//        }
+        if (baseSong != null) {
+            baseOp = db.getTrackById(baseSong);
+            if (!baseOp.isPresent()) {
+                logger.error("Track with id or name %s does not exist.".formatted(baseSong));
+                return;
+            }
+        }
 
         List<Track> tracks = new ArrayList<>(db.getAllTracks());
         Collections.shuffle(tracks, random);
         Stream<Track> stream = tracks.stream();
-        if (mood != null) stream = stream.filter(t -> t.mood().equalsIgnoreCase(mood));
-        if (instrument != null) stream = stream.filter(t -> t.instrument().equalsIgnoreCase(instrument));
-        if (genre != null) stream = stream.filter(t -> t.genre().equalsIgnoreCase(genre));
+        if (moodFilter != null) stream = stream.filter(t -> t.mood().equalsIgnoreCase(moodFilter));
+        if (instrumentFilter != null) stream = stream.filter(t -> t.instrument().equalsIgnoreCase(instrumentFilter));
+        if (genreFilter != null) stream = stream.filter(t -> t.genre().equalsIgnoreCase(genreFilter));
 
         if (baseOp.isPresent()) {
             Track base = baseOp.get();
@@ -88,8 +84,8 @@ public class App {
             for (int i = 0; i < songs; i++) api.updatePlaylist(playlist.id(), null, songs - i - 1, pub);
         } else {
             playlist = api.createPlaylist(playlistName);
-            pub = true;
-            api.updatePlaylist(playlist.id(), null, -1, true);
+            pub = newPublic;
+            api.updatePlaylist(playlist.id(), null, -1, pub);
         }
         for (Track t : similar) api.updatePlaylist(playlist.id(), t.id(), -1, pub);
     }

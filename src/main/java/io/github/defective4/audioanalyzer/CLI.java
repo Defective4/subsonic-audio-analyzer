@@ -1,5 +1,7 @@
 package io.github.defective4.audioanalyzer;
 
+import static io.github.defective4.audioanalyzer.ProgramOptions.*;
+
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
@@ -43,7 +45,15 @@ public class CLI {
     }, "generate-playlist", new CLIConsumer() {
         @Override
         public void consume(CommandLine cli, App prog) throws Exception {
-            prog.groupTracks();
+            String song = cli.getOptionValue(PLS_SIMILAR_SONG_OPTION, () -> null);
+            String mood = cli.getOptionValue(PLS_MOOD_FILTER_OPTION, () -> null);
+            String instrument = cli.getOptionValue(PLS_INSTRUMENT_FILTER_OPTION, () -> null);
+            String genre = cli.getOptionValue(PLS_GENRE_FILTER_OPTION, () -> null);
+            String playlistName = cli.getOptionValue(PLS_NAME_OPTION);
+            String replacePlaylist = cli.getOptionValue(PLS_REPLACE_OPTION, () -> null);
+            int limit = cli.getParsedOptionValue(PLS_LIMIT_OPTION, 30);
+            boolean newPublic = cli.getParsedOptionValue(PLS_PUBLIC_OPTION, true);
+            prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic);
         }
 
         @Override
@@ -80,7 +90,10 @@ public class CLI {
         ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS)
                 .addOption(Option.builder("t").desc("Essentia analyzer URL (Default " + DEFAULT_ESSENTIA + ")")
                         .numberOfArgs(1).argName("url").build());
-        PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS);
+        PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(PLS_NAME_OPTION)
+                .addOption(PLS_GENRE_FILTER_OPTION).addOption(PLS_INSTRUMENT_FILTER_OPTION).addOption(PLS_LIMIT_OPTION)
+                .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
+                .addOption(PLS_SIMILAR_SONG_OPTION);
     }
 
     public static void main(String[] args) throws Exception {
@@ -97,12 +110,12 @@ public class CLI {
         try {
             cli = DefaultParser.builder().build().parse(options, Arrays.copyOfRange(args, 1, args.length));
             if (!cli.hasOption('h')) {
-                String jdbc = cli.hasOption('j') ? cli.getOptionValue('j') : DEFAULT_JDBC;
+                String jdbc = cli.getOptionValue('j', DEFAULT_JDBC);
                 String user = cli.getOptionValue('u');
                 String password = cli.getOptionValue('p');
                 String subsonicURL = cli.getOptionValue('s');
                 if (!subsonicURL.endsWith("/")) subsonicURL = subsonicURL + "/";
-                String essentiaURL = cli.hasOption('t') ? cli.getOptionValue('t') : DEFAULT_ESSENTIA;
+                String essentiaURL = cli.getOptionValue('t', DEFAULT_ESSENTIA);
                 if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
                 App prog = new App(jdbc, user, password.toCharArray(), subsonicURL, essentiaURL);
