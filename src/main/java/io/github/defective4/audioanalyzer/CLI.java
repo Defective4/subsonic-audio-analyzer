@@ -17,7 +17,7 @@ import org.apache.commons.cli.Options;
 public class CLI {
 
     private interface CLIConsumer {
-        void consume(CommandLine cli, App prog) throws Exception;
+        boolean consume(CommandLine cli, App prog) throws Exception;
 
         String desc();
 
@@ -29,8 +29,9 @@ public class CLI {
     private static final Map<String, CLIConsumer> COMMANDS = Map.of("analyze", new CLIConsumer() {
 
         @Override
-        public void consume(CommandLine cli, App prog) throws Exception {
+        public boolean consume(CommandLine cli, App prog) throws Exception {
             prog.index(!cli.hasOption(AN_ALL));
+            return true;
         }
 
         @Override
@@ -44,7 +45,7 @@ public class CLI {
         }
     }, "generate-playlist", new CLIConsumer() {
         @Override
-        public void consume(CommandLine cli, App prog) throws Exception {
+        public boolean consume(CommandLine cli, App prog) throws Exception {
             String song = cli.getOptionValue(PLS_SIMILAR_SONG_OPTION, () -> null);
             String mood = cli.getOptionValue(PLS_MOOD_FILTER_OPTION, () -> null);
             String instrument = cli.getOptionValue(PLS_INSTRUMENT_FILTER_OPTION, () -> null);
@@ -53,7 +54,14 @@ public class CLI {
             String replacePlaylist = cli.getOptionValue(PLS_REPLACE_OPTION, () -> null);
             int limit = cli.getParsedOptionValue(PLS_LIMIT_OPTION, DEFAULT_LIMIT);
             boolean newPublic = cli.getParsedOptionValue(PLS_PUBLIC_OPTION, true);
+
+            if (replacePlaylist == null && playlistName == null) {
+                System.err.println("Missing playlist name");
+                return false;
+            }
+
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic);
+            return true;
         }
 
         @Override
@@ -73,17 +81,16 @@ public class CLI {
 
         COMMON_OPTIONS = new Options()
                 .addOption(Option.builder("h").desc("Display this help section").longOpt("help").build())
-                .addOption(Option.builder("j").desc("JDBC URL for the database (default " + ProgramOptions.DEFAULT_JDBC + ")")
-                        .longOpt("jdbc").numberOfArgs(1).argName("url").build())
+                .addOption(Option.builder("j")
+                        .desc("JDBC URL for the database (default " + ProgramOptions.DEFAULT_JDBC + ")").longOpt("jdbc")
+                        .numberOfArgs(1).argName("url").build())
                 .addOption(Option.builder("u").desc("Subsonic username (Required)").longOpt("user").numberOfArgs(1)
                         .argName("username").required().build())
                 .addOption(Option.builder("p").desc("Subsonic password (Required)").longOpt("password").numberOfArgs(1)
                         .argName("pass").required().build())
                 .addOption(Option.builder("s").desc("Subsonic instance URL (Required)").longOpt("url").numberOfArgs(1)
                         .argName("url").required().build());
-        ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS)
-                .addOption(AN_ALL)
-                .addOption(AN_TENSORFLOW);
+        ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(AN_ALL).addOption(AN_TENSORFLOW);
         PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(PLS_NAME_OPTION)
                 .addOption(PLS_GENRE_FILTER_OPTION).addOption(PLS_INSTRUMENT_FILTER_OPTION).addOption(PLS_LIMIT_OPTION)
                 .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
@@ -113,8 +120,7 @@ public class CLI {
                 if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
                 App prog = new App(jdbc, user, password.toCharArray(), subsonicURL, essentiaURL);
-                COMMANDS.get(args[0]).consume(cli, prog);
-                return;
+                if (COMMANDS.get(args[0]).consume(cli, prog)) return;
             }
         } catch (MissingArgumentException | MissingOptionException e) {
             System.err.println(e.getMessage());

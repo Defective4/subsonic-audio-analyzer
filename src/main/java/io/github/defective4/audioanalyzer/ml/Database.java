@@ -57,14 +57,16 @@ public class Database {
         return Collections.unmodifiableList(tracks);
     }
 
-    public Optional<Track> getTrackById(String id) throws SQLException {
+    public Optional<Track> getTrackByIdOrName(String idOrName) throws SQLException {
         List<String> cols = getColumns();
         try (PreparedStatement st = con
                 .prepareStatement("select * from `moods` where `trackId` = ? or `trackName` = ?")) {
-            st.setString(1, id);
-            st.setString(2, id);
+            st.setString(1, idOrName);
+            st.setString(2, idOrName);
             try (ResultSet set = st.executeQuery()) {
                 if (set.next()) {
+                    if (set.next())
+                        throw new IllegalStateException("There is more than one track with name " + idOrName);
                     return Optional.of(trackFromResultSet(set, cols));
                 }
                 return Optional.empty();

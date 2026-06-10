@@ -25,6 +25,7 @@ import io.github.defective4.audioanalyzer.ml.model.AnalysisResponse;
 import io.github.defective4.audioanalyzer.ml.model.ModelMetadata;
 import io.github.defective4.audioanalyzer.ml.model.Track;
 import io.github.defective4.audioanalyzer.subsonic.SubsonicAPI;
+import io.github.defective4.audioanalyzer.subsonic.exception.SubsonicException;
 import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 import io.github.defective4.audioanalyzer.subsonic.model.Playlist;
 
@@ -45,12 +46,18 @@ public class App {
     }
 
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
-            String playlistName, String replacePlaylist, int limit, boolean newPublic) throws SQLException, IOException {
+            String playlistName, String replacePlaylist, int limit, boolean newPublic)
+            throws SQLException, IOException {
         checkAPI();
 
         Optional<Track> baseOp = Optional.empty();
         if (baseSong != null) {
-            baseOp = db.getTrackById(baseSong);
+            try {
+                baseOp = db.getTrackByIdOrName(baseSong);
+            } catch (IllegalStateException e) {
+                logger.error(e.getMessage());
+                return;
+            }
             if (!baseOp.isPresent()) {
                 logger.error("Track with id or name %s does not exist.".formatted(baseSong));
                 return;
@@ -78,7 +85,15 @@ public class App {
         Playlist playlist;
         boolean pub;
         if (replacePlaylist != null) {
-            playlist = api.getPlaylist(replacePlaylist);
+            try {
+                playlist = api.getPlaylist(replacePlaylist);
+            } catch (SubsonicException e) {
+                if (e.getError().code() == 70) {
+                    logger.error("Playlist with id %s was not found".formatted(replacePlaylist));
+                    return;
+                }
+                throw e;
+            }
             pub = playlist.isPublic();
             int songs = playlist.entry().length;
             for (int i = 0; i < songs; i++) api.updatePlaylist(playlist.id(), null, songs - i - 1, pub);
