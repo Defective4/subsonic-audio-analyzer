@@ -25,10 +25,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import io.github.defective4.audioanalyzer.subsonic.exception.SubsonicException;
 import io.github.defective4.audioanalyzer.subsonic.model.AlbumList;
 import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 import io.github.defective4.audioanalyzer.subsonic.model.Playlist;
 import io.github.defective4.audioanalyzer.subsonic.model.SongList;
+import io.github.defective4.audioanalyzer.subsonic.model.SubsonicError;
 import io.github.defective4.audioanalyzer.subsonic.model.SubsonicResponse;
 
 public class SubsonicAPI {
@@ -139,7 +141,8 @@ public class SubsonicAPI {
         return hex.formatHex(md5.digest(data.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private SubsonicResponse request(String path, Map<String, Object> queryParameters) throws IOException {
+    private SubsonicResponse request(String path, Map<String, Object> queryParameters)
+            throws IOException, SubsonicException {
         HttpURLConnection con = null;
         try {
             String queryString = constructQueryString(queryParameters);
@@ -147,8 +150,9 @@ public class SubsonicAPI {
             try (Reader reader = new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8)) {
                 JsonElement json = JsonParser.parseReader(reader).getAsJsonObject().get("subsonic-response");
                 SubsonicResponse response = gson.fromJson(json, SubsonicResponse.class);
-                if (response.error() != null) throw new IOException(
-                        "Error %s: %s".formatted(response.error().code(), response.error().message()));
+                SubsonicError error = response.error();
+                if (error != null)
+                    throw new SubsonicException("Error %s: %s".formatted(error.code(), error.message()), error);
                 return response;
             }
         } finally {
