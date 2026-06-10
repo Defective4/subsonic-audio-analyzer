@@ -26,6 +26,7 @@ import io.github.defective4.audioanalyzer.ml.model.ModelMetadata;
 import io.github.defective4.audioanalyzer.ml.model.Track;
 import io.github.defective4.audioanalyzer.subsonic.SubsonicAPI;
 import io.github.defective4.audioanalyzer.subsonic.model.Entity;
+import io.github.defective4.audioanalyzer.subsonic.model.Playlist;
 
 public class App {
 
@@ -43,13 +44,15 @@ public class App {
         api = new SubsonicAPI(username, password, url);
     }
 
-    public void groupTracks() throws SQLException {
+    public void groupTracks() throws SQLException, IOException {
         // checkAPI();
         int limit = 30;
-        String id = "34ynLUJY8ua4uPm0Rizznu";
+        String id = "Akiramenai ~ Don’t Give Up!";
         String mood = null;
         String instrument = null;
         String genre = null;
+        String playlistName = null;
+        String replacePlaylist = "LKr5JjIEFBI5LodiuvjfAE";
 
         Optional<Track> baseOp = Optional.empty();
 //        baseOp = db.getTrackById(id);
@@ -76,7 +79,19 @@ public class App {
 
         List<Track> similar = stream.limit(limit).toList();
 
-        System.out.println(similar.stream().map(Track::name).toList());
+        Playlist playlist;
+        boolean pub;
+        if (replacePlaylist != null) {
+            playlist = api.getPlaylist(replacePlaylist);
+            pub = playlist.isPublic();
+            int songs = playlist.entry().length;
+            for (int i = 0; i < songs; i++) api.updatePlaylist(playlist.id(), null, songs - i - 1, pub);
+        } else {
+            playlist = api.createPlaylist(playlistName);
+            pub = true;
+            api.updatePlaylist(playlist.id(), null, -1, true);
+        }
+        for (Track t : similar) api.updatePlaylist(playlist.id(), t.id(), -1, pub);
     }
 
     public void index(boolean onlyNew) throws Exception {
@@ -95,6 +110,8 @@ public class App {
 
             Path tmpDir = Files.createTempDirectory("e-analysis-");
             tmpDir.toFile().deleteOnExit();
+
+            int errors = 0;
 
             for (int i = 0; i < songs.size(); i++) {
                 Entity song = songs.get(i);
@@ -126,11 +143,14 @@ public class App {
                     db.insertData(song, response.scoreMap(), moodName, instrumentName, genreName);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    errors++;
                     continue;
                 } finally {
                     target.toFile().delete();
                 }
             }
+            logger.info("All done!");
+            logger.info("Analyzed {} songs with {} errors", songs.size(), errors);
         } catch (Exception e) {
             logger.error("An error occured: " + e.getMessage());
             throw e;

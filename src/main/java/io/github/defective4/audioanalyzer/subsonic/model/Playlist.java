@@ -1,4 +1,6 @@
 package io.github.defective4.audioanalyzer.subsonic.model;
 
-public record Playlist(String id, String name) {
+import com.google.gson.annotations.SerializedName;
+
+public record Playlist(String id, String name, Entity[] entry, @SerializedName("public") boolean isPublic) {
 }

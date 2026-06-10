@@ -96,13 +96,18 @@ public class SubsonicAPI {
         return request("getMusicDirectory", Map.of("id", id)).directory();
     }
 
+    public Playlist getPlaylist(String id) throws IOException {
+        return request("getPlaylist", Map.of("id", id)).playlist();
+    }
+
     public SubsonicResponse ping() throws IOException {
         return request("ping", Map.of());
     }
 
-    public void updatePlaylist(String id, String songId, boolean isPublic) throws IOException {
+    public void updatePlaylist(String id, String songToAdd, int songToRemove, boolean isPublic) throws IOException {
         Map<String, Object> map = new HashMap<>();
-        if (songId != null) map.put("songIdToAdd", songId);
+        if (songToAdd != null) map.put("songIdToAdd", songToAdd);
+        if (songToRemove >= 0) map.put("songIndexToRemove", songToRemove);
         map.put("playlistId", id);
         map.put("public", isPublic);
         request("updatePlaylist", map);
