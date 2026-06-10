@@ -30,7 +30,7 @@ public class CLI {
 
         @Override
         public void consume(CommandLine cli, App prog) throws Exception {
-            prog.index(!cli.hasOption('n'));
+            prog.index(!cli.hasOption(AN_ALL));
         }
 
         @Override
@@ -51,7 +51,7 @@ public class CLI {
             String genre = cli.getOptionValue(PLS_GENRE_FILTER_OPTION, () -> null);
             String playlistName = cli.getOptionValue(PLS_NAME_OPTION);
             String replacePlaylist = cli.getOptionValue(PLS_REPLACE_OPTION, () -> null);
-            int limit = cli.getParsedOptionValue(PLS_LIMIT_OPTION, 30);
+            int limit = cli.getParsedOptionValue(PLS_LIMIT_OPTION, DEFAULT_LIMIT);
             boolean newPublic = cli.getParsedOptionValue(PLS_PUBLIC_OPTION, true);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic);
         }
@@ -68,18 +68,12 @@ public class CLI {
 
     });
     private static final Options COMMON_OPTIONS;
-    private static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
-
-    private static final String DEFAULT_JDBC = "jdbc:sqlite:./mood.sqlite";
-    private static final int DEFAULT_LIMIT = 30;
-
     private static final Options PLAYLIST_OPTIONS;
     static {
+
         COMMON_OPTIONS = new Options()
                 .addOption(Option.builder("h").desc("Display this help section").longOpt("help").build())
-                .addOption(Option.builder("n").desc("Analyze all tracks, even if they are present in the database")
-                        .longOpt("only-new").build())
-                .addOption(Option.builder("j").desc("JDBC URL for the database (default " + DEFAULT_JDBC + ")")
+                .addOption(Option.builder("j").desc("JDBC URL for the database (default " + ProgramOptions.DEFAULT_JDBC + ")")
                         .longOpt("jdbc").numberOfArgs(1).argName("url").build())
                 .addOption(Option.builder("u").desc("Subsonic username (Required)").longOpt("user").numberOfArgs(1)
                         .argName("username").required().build())
@@ -88,8 +82,8 @@ public class CLI {
                 .addOption(Option.builder("s").desc("Subsonic instance URL (Required)").longOpt("url").numberOfArgs(1)
                         .argName("url").required().build());
         ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS)
-                .addOption(Option.builder("t").desc("Essentia analyzer URL (Default " + DEFAULT_ESSENTIA + ")")
-                        .numberOfArgs(1).argName("url").build());
+                .addOption(AN_ALL)
+                .addOption(AN_TENSORFLOW);
         PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(PLS_NAME_OPTION)
                 .addOption(PLS_GENRE_FILTER_OPTION).addOption(PLS_INSTRUMENT_FILTER_OPTION).addOption(PLS_LIMIT_OPTION)
                 .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
