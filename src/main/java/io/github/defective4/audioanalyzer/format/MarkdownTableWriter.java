@@ -21,6 +21,7 @@ public class MarkdownTableWriter extends PrintWriter {
         for (int i = 0; i < columnWidths.length; i++) {
             int index = i;
             columnWidths[i] = Arrays.stream(values).mapToInt(arr -> arr[index].length()).max().getAsInt();
+            columnWidths[i] = Math.max(columnWidths[i], columns[i].length());
         }
 
         for (int i = 0; i < columns.length; i++) {
@@ -37,8 +38,8 @@ public class MarkdownTableWriter extends PrintWriter {
         }
         println('|');
 
-        for(String[] row : values) {
-            for(int i=0;i<row.length;i++) {
+        for (String[] row : values) {
+            for (int i = 0; i < row.length; i++) {
                 String val = row[i];
                 print("| ");
                 print(formatCell(val, columnWidths[i]));

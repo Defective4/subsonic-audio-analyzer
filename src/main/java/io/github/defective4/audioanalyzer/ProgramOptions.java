@@ -31,10 +31,13 @@ public class ProgramOptions {
     public static final Option PLS_SIMILAR_MOOD_OPTION;
     public static final Option PLS_SIMILAR_SONG_OPTION;
     public static final Option ST_PRINT_FORMAT_OPTION;
+    public static final Option ST_SONG_OPTION;
     public static final Option SUBSONIC_URL;
     public static final Option USER_OPTION;
 
     static {
+        ST_SONG_OPTION = Option.builder("s").argName("song").numberOfArgs(1)
+                .desc("Get statistics for a particular song. Both song ID and name is supported.").build();
         ST_PRINT_FORMAT_OPTION = Option.builder("p")
                 .desc("(Required) Statistics print format. Available values are: " + String.join(", ",
                         Arrays.stream(PrintFormat.values()).map(e -> e.name().toLowerCase()).toArray(String[]::new)))

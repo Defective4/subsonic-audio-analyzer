@@ -235,8 +235,19 @@ public class App {
         }
     }
 
-    public void printSongs(PrintFormat printFormat) throws SQLException, IOException {
-        List<Track> tracks = db.getAllTracks();
+    public void printSongs(PrintFormat printFormat, String song) throws SQLException, IOException {
+        logger.info("Retrieving song statistics...");
+        List<Track> tracks;
+        if (song == null) {
+            tracks = db.getAllTracks();
+        } else {
+            Optional<Track> track = db.getTrackByIdOrName(song);
+            if (!track.isPresent()) {
+                logger.error("Song {} does not exist", song);
+                return;
+            }
+            tracks = Collections.singletonList(track.get());
+        }
         try (Writer writer = new OutputStreamWriter(System.out)) {
             switch (printFormat) {
                 case JSON -> { new Gson().toJson(tracks, writer); }
@@ -253,6 +264,7 @@ public class App {
                 default -> throw new IllegalArgumentException("Unknown print format");
             }
         }
+        logger.info("Done!");
     }
 
     private void checkAPI() throws IOException {
