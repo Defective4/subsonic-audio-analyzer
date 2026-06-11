@@ -228,6 +228,10 @@ public class App {
         }
     }
 
+    public void printSongs(PrintFormat printFormat) {
+
+    }
+
     private void checkAPI() throws IOException {
         logger.info("Checking credentials...");
         api.ping();

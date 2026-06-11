@@ -1,7 +1,10 @@
 package io.github.defective4.audioanalyzer;
 
+import java.util.Arrays;
+
 import org.apache.commons.cli.Option;
 
+import io.github.defective4.audioanalyzer.expr.EnumConverter;
 import io.github.defective4.audioanalyzer.expr.IntegerExpressionConverter;
 
 public class ProgramOptions {
@@ -26,10 +29,16 @@ public class ProgramOptions {
     public static final Option PLS_SIMILAR_INSTRUMENT_OPTION;
     public static final Option PLS_SIMILAR_MOOD_OPTION;
     public static final Option PLS_SIMILAR_SONG_OPTION;
+    public static final Option ST_PRINT_FORMAT_OPTION;
     public static final Option SUBSONIC_URL;
     public static final Option USER_OPTION;
 
     static {
+        ST_PRINT_FORMAT_OPTION = Option.builder("p")
+                .desc("(Required) Statistics print format. Available values are: " + String.join(", ",
+                        Arrays.stream(PrintFormat.values()).map(e -> e.name().toLowerCase()).toArray(String[]::new)))
+                .longOpt("print-format").argName("format").numberOfArgs(1).required()
+                .converter(new EnumConverter<>(PrintFormat.class)).build();
         PASSWORD_OPTION = Option.builder("p").desc("Subsonic password (Required)").longOpt("password").numberOfArgs(1)
                 .argName("pass").required().build();
         USER_OPTION = Option.builder("u").desc("Subsonic username (Required)").longOpt("user").numberOfArgs(1)

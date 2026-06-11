@@ -80,9 +80,26 @@ public class CLI {
             return PLAYLIST_OPTIONS;
         }
 
+    }, "stats", new CLIConsumer() {
+        @Override
+        public boolean consume(CommandLine cli, App prog) throws Exception {
+            prog.printSongs(cli.getParsedOptionValue(ST_PRINT_FORMAT_OPTION, PrintFormat.JSON));
+            return true;
+        }
+
+        @Override
+        public String desc() {
+            return "Print statistics about songs in the database";
+        }
+
+        @Override
+        public Options ops() {
+            return STATS_OPTIONS;
+        }
     });
     private static final Options COMMON_OPTIONS;
     private static final Options PLAYLIST_OPTIONS;
+    private static final Options STATS_OPTIONS;
 
     static {
         COMMON_OPTIONS = new Options()
@@ -99,6 +116,7 @@ public class CLI {
                 .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SIMILAR_GENRE_OPTION)
                 .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
                 .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL);
+        STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION);
     }
 
     public static void main(String[] args) throws Exception {
@@ -119,7 +137,7 @@ public class CLI {
                 String user = cli.getOptionValue('u');
                 String password = cli.getOptionValue('p');
                 String subsonicURL = cli.getOptionValue('s');
-                if (!subsonicURL.endsWith("/")) subsonicURL = subsonicURL + "/";
+                if (subsonicURL != null && !subsonicURL.endsWith("/")) subsonicURL = subsonicURL + "/";
                 String essentiaURL = cli.getOptionValue('t', DEFAULT_ESSENTIA);
                 if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
