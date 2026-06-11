@@ -30,6 +30,7 @@ public class ProgramOptions {
     public static final Option PLS_SIMILAR_INSTRUMENT_OPTION;
     public static final Option PLS_SIMILAR_MOOD_OPTION;
     public static final Option PLS_SIMILAR_SONG_OPTION;
+    public static final Option ST_OUTPUT_OPTION;
     public static final Option ST_PRINT_FORMAT_OPTION;
     public static final Option ST_SONG_OPTION;
     public static final Option SUBSONIC_URL;
@@ -38,9 +39,13 @@ public class ProgramOptions {
     static {
         ST_SONG_OPTION = Option.builder("s").argName("song").numberOfArgs(1)
                 .desc("Get statistics for a particular song. Both song ID and name is supported.").build();
+        ST_OUTPUT_OPTION = Option.builder("o").argName("output").numberOfArgs(1)
+                .desc("Redirects command output to a file. Use \"-\" for standard output (default).").longOpt("output")
+                .build();
         ST_PRINT_FORMAT_OPTION = Option.builder("p")
                 .desc("(Required) Statistics print format. Available values are: " + String.join(", ",
-                        Arrays.stream(PrintFormat.values()).map(e -> e.name().toLowerCase()).toArray(String[]::new)))
+                        Arrays.stream(PrintFormat.values()).map(e -> e.name().toLowerCase()).toArray(String[]::new)
+                                + "."))
                 .longOpt("print-format").argName("format").numberOfArgs(1).required()
                 .converter(new EnumConverter<>(PrintFormat.class)).build();
         PASSWORD_OPTION = Option.builder("p").desc("Subsonic password (Required)").longOpt("password").numberOfArgs(1)

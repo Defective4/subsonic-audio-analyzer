@@ -235,7 +235,7 @@ public class App {
         }
     }
 
-    public void printSongs(PrintFormat printFormat, String song) throws SQLException, IOException {
+    public void printSongs(PrintFormat printFormat, String song, String output) throws SQLException, IOException {
         logger.info("Retrieving song statistics...");
         List<Track> tracks;
         if (song == null) {
@@ -248,7 +248,7 @@ public class App {
             }
             tracks = Collections.singletonList(track.get());
         }
-        try (Writer writer = new OutputStreamWriter(System.out)) {
+        try (Writer writer = new OutputStreamWriter(output.equals("-") ?System.out : Files.newOutputStream(Path.of(output)))) {
             switch (printFormat) {
                 case JSON -> { new Gson().toJson(tracks, writer); }
                 case JSON_PRETTY -> { new GsonBuilder().setPrettyPrinting().create().toJson(tracks, writer); }

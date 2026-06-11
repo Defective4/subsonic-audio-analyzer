@@ -85,7 +85,7 @@ public class CLI {
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
             prog.printSongs(cli.getParsedOptionValue(ST_PRINT_FORMAT_OPTION, PrintFormat.JSON),
-                    cli.getOptionValue(ST_SONG_OPTION));
+                    cli.getOptionValue(ST_SONG_OPTION), cli.getOptionValue(ST_OUTPUT_OPTION, "-"));
             return true;
         }
 
@@ -119,7 +119,7 @@ public class CLI {
                 .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
                 .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL);
         STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
-                .addOption(ST_SONG_OPTION);
+                .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
     }
 
     public static void main(String[] args) throws Exception {
