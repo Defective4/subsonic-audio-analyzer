@@ -4,10 +4,10 @@ import static io.github.defective4.audioanalyzer.expr.NumericExpressionType.*;
 
 import org.apache.commons.cli.Converter;
 
-public class IntegerExpressionConverter implements Converter<IntegerExpression, ExpressionConversionException> {
+public class IntegerExpressionConverter implements Converter<NumericExpression, ExpressionConversionException> {
 
     @Override
-    public IntegerExpression apply(String string) throws ExpressionConversionException {
+    public NumericExpression apply(String string) throws ExpressionConversionException {
         String exprStr = string;
         if (exprStr.trim().length() < 1) throw new ExpressionConversionException("The expression string it too short");
         char compChar = exprStr.charAt(0);
@@ -28,7 +28,7 @@ public class IntegerExpressionConverter implements Converter<IntegerExpression, 
         } catch (NumberFormatException e) {
             throw new ExpressionConversionException("The expression is invalid");
         }
-        return new IntegerExpression(type, val);
+        return new NumericExpression(type, val);
     }
 
 }

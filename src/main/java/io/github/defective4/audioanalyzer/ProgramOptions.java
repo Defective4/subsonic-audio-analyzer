@@ -30,6 +30,7 @@ public class ProgramOptions {
     public static final Option PLS_SIMILAR_INSTRUMENT_OPTION;
     public static final Option PLS_SIMILAR_MOOD_OPTION;
     public static final Option PLS_SIMILAR_SONG_OPTION;
+    public static final Option PLS_VOCALITY_FILTER_OPTION;
     public static final Option ST_OUTPUT_OPTION;
     public static final Option ST_PRINT_FORMAT_OPTION;
     public static final Option ST_SONG_OPTION;
@@ -37,6 +38,12 @@ public class ProgramOptions {
     public static final Option USER_OPTION;
 
     static {
+        PLS_VOCALITY_FILTER_OPTION = Option.builder().longOpt("vocality-filter").numberOfArgs(1).argName("expression")
+                .desc("Filter tracks by their vocality." + "Less than 50% is instrumental, more than 50% is vocal."
+                        + "(Example expression: \">50\"." + "This filters tracks with more than 50% vocal score.")
+                .converter(new IntegerExpressionConverter())
+                .build();
+
         ST_SONG_OPTION = Option.builder("s").argName("song").numberOfArgs(1)
                 .desc("Get statistics for a particular song. Both song ID and name is supported.").build();
         ST_OUTPUT_OPTION = Option.builder("o").argName("output").numberOfArgs(1)

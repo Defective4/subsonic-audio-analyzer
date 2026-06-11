@@ -13,7 +13,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import io.github.defective4.audioanalyzer.expr.IntegerExpression;
+import io.github.defective4.audioanalyzer.expr.NumericExpression;
 import io.github.defective4.audioanalyzer.format.PrintFormat;
 
 public class CLI {
@@ -56,7 +56,8 @@ public class CLI {
             String replacePlaylist = cli.getOptionValue(PLS_REPLACE_OPTION, () -> null);
             int limit = cli.getParsedOptionValue(PLS_LIMIT_OPTION, DEFAULT_LIMIT);
             boolean newPublic = cli.hasOption(PLS_PUBLIC_OPTION);
-            IntegerExpression bpmExpr = cli.getParsedOptionValue(PLS_BPM_FILTER, null);
+            NumericExpression bpmExpr = cli.getParsedOptionValue(PLS_BPM_FILTER, null);
+            NumericExpression vocalExpr = cli.getParsedOptionValue(PLS_VOCALITY_FILTER_OPTION, null);
 
             if (replacePlaylist == null && playlistName == null) {
                 System.err.println("Missing playlist name");
@@ -67,7 +68,7 @@ public class CLI {
             boolean similarInstrument = cli.hasOption(PLS_SIMILAR_INSTRUMENT_OPTION);
             boolean tempo = cli.hasOption(PLS_SIMILAR_INCLUDE_BPM);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic,
-                    similarGenre, similarMood, similarInstrument, tempo, bpmExpr);
+                    similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr);
             return true;
         }
 
@@ -117,7 +118,8 @@ public class CLI {
                 .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
                 .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SIMILAR_GENRE_OPTION)
                 .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
-                .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL);
+                .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL)
+                .addOption(PLS_VOCALITY_FILTER_OPTION);
         STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
                 .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
     }

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import io.github.defective4.audioanalyzer.expr.IntegerExpression;
+import io.github.defective4.audioanalyzer.expr.NumericExpression;
 import io.github.defective4.audioanalyzer.format.MarkdownTableWriter;
 import io.github.defective4.audioanalyzer.format.PrintFormat;
 import io.github.defective4.audioanalyzer.ml.ModelLoader;
@@ -58,8 +58,8 @@ public class App {
 
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
             String playlistName, String replacePlaylist, int limit, boolean newPublic, boolean similarGenre,
-            boolean similarMood, boolean similarInstrument, boolean includeTempo, IntegerExpression bpmExpr)
-            throws SQLException, IOException {
+            boolean similarMood, boolean similarInstrument, boolean includeTempo, NumericExpression bpmExpr,
+            NumericExpression vocalExpr) throws SQLException, IOException {
         checkAPI();
 
         logger.info("Getting tracks from the database...");
@@ -132,11 +132,22 @@ public class App {
 
         if (bpmExpr != null) {
             stream = stream.filter(track -> {
-                int val = bpmExpr.getInt();
+                int val = bpmExpr.intValue();
                 return switch (bpmExpr.getType()) {
                     case LESS_THAN -> track.bpm() < val;
                     case MORE_THAN -> track.bpm() > val;
                     default -> track.bpm() == val;
+                };
+            });
+        }
+
+        if (vocalExpr != null) {
+            stream = stream.filter(track -> {
+                float val = vocalExpr.floatValue();
+                return switch (vocalExpr.getType()) {
+                    case LESS_THAN -> track.getVocality() < val;
+                    case MORE_THAN -> track.getVocality() > val;
+                    default -> track.getVocality() == val;
                 };
             });
         }
@@ -248,7 +259,8 @@ public class App {
             }
             tracks = Collections.singletonList(track.get());
         }
-        try (Writer writer = new OutputStreamWriter(output.equals("-") ?System.out : Files.newOutputStream(Path.of(output)))) {
+        try (Writer writer = new OutputStreamWriter(
+                output.equals("-") ? System.out : Files.newOutputStream(Path.of(output)))) {
             switch (printFormat) {
                 case JSON -> { new Gson().toJson(tracks, writer); }
                 case JSON_PRETTY -> { new GsonBuilder().setPrettyPrinting().create().toJson(tracks, writer); }

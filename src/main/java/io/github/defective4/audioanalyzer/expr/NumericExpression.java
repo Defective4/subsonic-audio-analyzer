@@ -1,12 +1,22 @@
 package io.github.defective4.audioanalyzer.expr;
 
-public class NumericExpression {
+public class NumericExpression extends Number {
     private final Number number;
     private final NumericExpressionType type;
 
-    protected NumericExpression(NumericExpressionType type, Number number) {
+    public NumericExpression(NumericExpressionType type, Number number) {
         this.type = type;
         this.number = number;
+    }
+
+    @Override
+    public double doubleValue() {
+        return number.doubleValue();
+    }
+
+    @Override
+    public float floatValue() {
+        return number.floatValue();
     }
 
     public Number getNumber() {
@@ -15,6 +25,16 @@ public class NumericExpression {
 
     public NumericExpressionType getType() {
         return type;
+    }
+
+    @Override
+    public int intValue() {
+        return number.intValue();
+    }
+
+    @Override
+    public long longValue() {
+        return number.longValue();
     }
 
     @Override
