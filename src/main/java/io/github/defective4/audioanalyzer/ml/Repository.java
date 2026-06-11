@@ -16,10 +16,10 @@ import java.util.Optional;
 import io.github.defective4.audioanalyzer.ml.model.Track;
 import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 
-public class Database {
+public class Repository {
     private final Connection con;
 
-    public Database(String jdbcURL) throws SQLException {
+    public Repository(String jdbcURL) throws SQLException {
         con = DriverManager.getConnection(jdbcURL);
         con.setAutoCommit(true);
         try (Statement st = con.createStatement()) {

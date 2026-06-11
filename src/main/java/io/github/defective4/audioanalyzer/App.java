@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.defective4.audioanalyzer.ml.Database;
 import io.github.defective4.audioanalyzer.ml.ModelLoader;
+import io.github.defective4.audioanalyzer.ml.Repository;
 import io.github.defective4.audioanalyzer.ml.TensorflowAnalyzer;
 import io.github.defective4.audioanalyzer.ml.model.AnalysisResponse;
 import io.github.defective4.audioanalyzer.ml.model.ModelMetadata;
@@ -36,14 +36,14 @@ public class App {
     private final String analyzerURL;
 
     private final SubsonicAPI api;
-    private final Database db;
+    private final Repository db;
     private final Logger logger = LoggerFactory.getLogger(CLI.class);
     private final Random random = new Random();
 
-    public App(String jdbcURL, String username, char[] password, String url, String analyzerURL)
+    public App(String dbFile, String username, char[] password, String url, String analyzerURL)
             throws SQLException, IOException {
         this.analyzerURL = analyzerURL;
-        db = new Database(jdbcURL);
+        db = new Repository("jdbc:sqlite:" + dbFile);
         api = new SubsonicAPI(username, password, url);
     }
 

@@ -84,9 +84,9 @@ public class CLI {
 
         COMMON_OPTIONS = new Options()
                 .addOption(Option.builder("h").desc("Display this help section").longOpt("help").build())
-                .addOption(Option.builder("j")
-                        .desc("JDBC URL for the database (default " + ProgramOptions.DEFAULT_JDBC + ")").longOpt("jdbc")
-                        .numberOfArgs(1).argName("url").build())
+                .addOption(Option.builder("d")
+                        .desc("SQLite database location (default " + ProgramOptions.DEFAULT_DB + ")").longOpt("db")
+                        .numberOfArgs(1).argName("file").build())
                 .addOption(Option.builder("u").desc("Subsonic username (Required)").longOpt("user").numberOfArgs(1)
                         .argName("username").required().build())
                 .addOption(Option.builder("p").desc("Subsonic password (Required)").longOpt("password").numberOfArgs(1)
@@ -115,7 +115,7 @@ public class CLI {
         try {
             cli = DefaultParser.builder().build().parse(options, Arrays.copyOfRange(args, 1, args.length));
             if (!cli.hasOption('h')) {
-                String jdbc = cli.getOptionValue('j', DEFAULT_JDBC);
+                String db = cli.getOptionValue('d', DEFAULT_DB);
                 String user = cli.getOptionValue('u');
                 String password = cli.getOptionValue('p');
                 String subsonicURL = cli.getOptionValue('s');
@@ -123,7 +123,7 @@ public class CLI {
                 String essentiaURL = cli.getOptionValue('t', DEFAULT_ESSENTIA);
                 if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
-                App prog = new App(jdbc, user, password.toCharArray(), subsonicURL, essentiaURL);
+                App prog = new App(db, user, password.toCharArray(), subsonicURL, essentiaURL);
                 if (COMMANDS.get(args[0]).consume(cli, prog)) return;
             }
         } catch (MissingArgumentException | MissingOptionException e) {

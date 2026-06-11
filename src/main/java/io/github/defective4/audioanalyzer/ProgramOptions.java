@@ -6,9 +6,9 @@ public class ProgramOptions {
 
     public static final Option AN_ALL;
     public static final Option AN_TENSORFLOW;
-    public static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
+    public static final String DEFAULT_DB = "./mood.sqlite";
 
-    public static final String DEFAULT_JDBC = "jdbc:sqlite:./mood.sqlite";
+    public static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
     public static final int DEFAULT_LIMIT = 30;
     public static final Option PLS_GENRE_FILTER_OPTION;
     public static final Option PLS_INSTRUMENT_FILTER_OPTION;
