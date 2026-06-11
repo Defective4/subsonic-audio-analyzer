@@ -2,6 +2,8 @@ package io.github.defective4.audioanalyzer;
 
 import org.apache.commons.cli.Option;
 
+import io.github.defective4.audioanalyzer.expr.IntegerExpressionConverter;
+
 public class ProgramOptions {
 
     public static final Option AN_ALL;
@@ -10,6 +12,7 @@ public class ProgramOptions {
 
     public static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
     public static final int DEFAULT_LIMIT = 30;
+    public static final Option PLS_BPM_FILTER;
     public static final Option PLS_GENRE_FILTER_OPTION;
     public static final Option PLS_INSTRUMENT_FILTER_OPTION;
     public static final Option PLS_LIMIT_OPTION;
@@ -24,6 +27,10 @@ public class ProgramOptions {
     public static final Option PLS_SIMILAR_SONG_OPTION;
 
     static {
+        PLS_BPM_FILTER = Option.builder().longOpt("bpm-filter").argName("filter expr.").numberOfArgs(1)
+                .desc("Filter songs by their BPM. You can use > and < (Example: >70 for songs with more than 70 BPM)")
+                .converter(new IntegerExpressionConverter())
+                .build();
         PLS_SIMILAR_INCLUDE_BPM = Option.builder().longOpt("include-bpm")
                 .desc("Include tempo calculations in similar songs analysis.").build();
         PLS_SIMILAR_GENRE_OPTION = Option.builder().longOpt("same-genre").desc(

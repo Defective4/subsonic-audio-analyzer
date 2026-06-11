@@ -9,10 +9,11 @@ import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import io.github.defective4.audioanalyzer.expr.IntegerExpression;
 
 public class CLI {
 
@@ -54,6 +55,7 @@ public class CLI {
             String replacePlaylist = cli.getOptionValue(PLS_REPLACE_OPTION, () -> null);
             int limit = cli.getParsedOptionValue(PLS_LIMIT_OPTION, DEFAULT_LIMIT);
             boolean newPublic = cli.hasOption(PLS_PUBLIC_OPTION);
+            IntegerExpression bpmExpr = cli.getParsedOptionValue(PLS_BPM_FILTER, null);
 
             if (replacePlaylist == null && playlistName == null) {
                 System.err.println("Missing playlist name");
@@ -64,7 +66,7 @@ public class CLI {
             boolean similarInstrument = cli.hasOption(PLS_SIMILAR_INSTRUMENT_OPTION);
             boolean tempo = cli.hasOption(PLS_SIMILAR_INCLUDE_BPM);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic,
-                    similarGenre, similarMood, similarInstrument, tempo);
+                    similarGenre, similarMood, similarInstrument, tempo, bpmExpr);
             return true;
         }
 
@@ -100,7 +102,8 @@ public class CLI {
                 .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
                 .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SIMILAR_GENRE_OPTION)
                 .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
-                .addOption(PLS_SIMILAR_INCLUDE_BPM);
+                .addOption(PLS_SIMILAR_INCLUDE_BPM)
+                .addOption(PLS_BPM_FILTER);
     }
 
     public static void main(String[] args) throws Exception {
@@ -128,7 +131,7 @@ public class CLI {
                 App prog = new App(db, user, password.toCharArray(), subsonicURL, essentiaURL);
                 if (COMMANDS.get(args[0]).consume(cli, prog)) return;
             }
-        } catch (MissingArgumentException | MissingOptionException e) {
+        } catch (ParseException e) {
             System.err.println(e.getMessage());
         }
 

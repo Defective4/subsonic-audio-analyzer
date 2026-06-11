@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.defective4.audioanalyzer.expr.IntegerExpression;
 import io.github.defective4.audioanalyzer.ml.ModelLoader;
 import io.github.defective4.audioanalyzer.ml.Repository;
 import io.github.defective4.audioanalyzer.ml.TensorflowAnalyzer;
@@ -49,7 +50,8 @@ public class App {
 
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
             String playlistName, String replacePlaylist, int limit, boolean newPublic, boolean similarGenre,
-            boolean similarMood, boolean similarInstrument, boolean includeTempo) throws SQLException, IOException {
+            boolean similarMood, boolean similarInstrument, boolean includeTempo, IntegerExpression bpmExpr)
+            throws SQLException, IOException {
         checkAPI();
 
         logger.info("Getting tracks from the database...");
@@ -118,7 +120,17 @@ public class App {
             if (similarGenre) stream = stream.filter(track -> track.genre().equals(base.genre()));
             if (similarInstrument) stream = stream.filter(track -> track.instrument().equals(base.instrument()));
             if (similarMood) stream = stream.filter(track -> track.mood().equals(base.mood()));
-//            stream = stream.filter(track -> !track.id().equals(base.id()));
+        }
+
+        if (bpmExpr != null) {
+            stream = stream.filter(track -> {
+                int val = bpmExpr.getInt();
+                return switch (bpmExpr.getType()) {
+                    case LESS_THAN -> track.bpm() < val;
+                    case MORE_THAN -> track.bpm() > val;
+                    default -> track.bpm() == val;
+                };
+            });
         }
 
         List<Track> similar = new ArrayList<>(stream.limit(limit).toList());
