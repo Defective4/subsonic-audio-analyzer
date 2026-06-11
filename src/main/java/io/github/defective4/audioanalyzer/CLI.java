@@ -29,7 +29,7 @@ public class CLI {
 
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            prog.index(!cli.hasOption(AN_ALL));
+            prog.analyze(!cli.hasOption(AN_ALL));
             return true;
         }
 

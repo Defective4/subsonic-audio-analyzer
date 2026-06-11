@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -123,7 +122,7 @@ public class App {
         if (baseOp.isPresent()) {
             Track base = baseOp.get();
             stream = stream.sorted((t1, t2) -> {
-                double diff = calculateSimilarity(t1, base, includeTempo) - calculateSimilarity(t2, base, includeTempo);
+                double diff = base.calculateSimilarity(t1, includeTempo) - base.calculateSimilarity(t2, includeTempo);
                 return diff < 0 ? -1 : diff > 0 ? 1 : 0;
             });
             if (similarGenre) stream = stream.filter(track -> track.genre().equals(base.genre()));
@@ -182,7 +181,7 @@ public class App {
         logger.info("Added {} songs to playlist {}!", similar.size(), playlist.name());
     }
 
-    public void index(boolean onlyNew) throws Exception {
+    public void analyze(boolean onlyNew) throws Exception {
         try {
             TensorflowAnalyzer analyzer = getTensorflow();
             logger.info("Analyzer server OK");
@@ -299,15 +298,4 @@ public class App {
         analyzer.ping();
         return analyzer;
     }
-
-    private static double calculateSimilarity(Track track1, Track track2, boolean tempo) {
-        double sum = 0;
-        for (Entry<String, Float> entry : track1.scores().entrySet()) {
-            float diff = entry.getValue() - track2.scores().get(entry.getKey());
-            sum += diff * diff;
-        }
-        if (tempo) sum += (track1.bpm() - track2.bpm()) / 200f;
-        return Math.sqrt(sum);
-    }
-
 }
