@@ -9,7 +9,6 @@ import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -103,12 +102,9 @@ public class CLI {
     private static final Options COMMON_OPTIONS;
     private static final Options PLAYLIST_OPTIONS;
     private static final Options STATS_OPTIONS;
-
     static {
-        COMMON_OPTIONS = new Options()
-                .addOption(Option.builder("h").desc("Display this help section").longOpt("help").build()).addOption(
-                        Option.builder("d").desc("SQLite database location (default " + ProgramOptions.DEFAULT_DB + ")")
-                                .longOpt("db").numberOfArgs(1).argName("file").build());
+
+        COMMON_OPTIONS = new Options().addOption(HELP_OPTION).addOption(DB_LOCATION_OPTION);
         ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(AN_ALL).addOption(AN_TENSORFLOW)
                 .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
                 .addOption(SUBSONIC_URL);

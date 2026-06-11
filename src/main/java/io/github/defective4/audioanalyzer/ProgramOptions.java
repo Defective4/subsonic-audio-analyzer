@@ -12,10 +12,12 @@ public class ProgramOptions {
 
     public static final Option AN_ALL;
     public static final Option AN_TENSORFLOW;
-    public static final String DEFAULT_DB = "./mood.sqlite";
+    public static final Option DB_LOCATION_OPTION;
 
+    public static final String DEFAULT_DB = "./mood.sqlite";
     public static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
     public static final int DEFAULT_LIMIT = 30;
+    public static final Option HELP_OPTION;
     public static final Option PASSWORD_OPTION;
     public static final Option PLS_BPM_FILTER;
     public static final Option PLS_GENRE_FILTER_OPTION;
@@ -34,10 +36,15 @@ public class ProgramOptions {
     public static final Option ST_OUTPUT_OPTION;
     public static final Option ST_PRINT_FORMAT_OPTION;
     public static final Option ST_SONG_OPTION;
-    public static final Option SUBSONIC_URL;
-    public static final Option USER_OPTION;
 
+    public static final Option SUBSONIC_URL;
+
+    public static final Option USER_OPTION;
     static {
+        HELP_OPTION = Option.builder("h").desc("Display this help section").longOpt("help").build();
+        DB_LOCATION_OPTION = Option.builder("d")
+                .desc("SQLite database location (default " + ProgramOptions.DEFAULT_DB + ")").longOpt("db")
+                .numberOfArgs(1).argName("file").build();
         PLS_VOCALITY_FILTER_OPTION = Option.builder().longOpt("vocality-filter").numberOfArgs(1).argName("expression")
                 .desc("Filter tracks by their vocality." + "Less than 50% is instrumental, more than 50% is vocal."
                         + "(Example expression: \">50\"." + "This filters tracks with more than 50% vocal score.")
