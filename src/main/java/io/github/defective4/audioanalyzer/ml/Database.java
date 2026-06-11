@@ -27,14 +27,16 @@ public class Database {
                     CREATE TABLE IF NOT EXISTS "moods" (
                     	"trackId"	      TEXT NOT NULL,
                     	"trackName"       TEXT NOT NULL,
-                    	"mood"        TEXT NOT NULL,
+                    	"mood"            TEXT NOT NULL,
                     	"instrument"      TEXT NOT NULL,
-                    	"genre"       TEXT NOT NULL,
+                    	"genre"           TEXT NOT NULL,
+                    	"bpm"             NUMERIC NOT NULL,
                     	PRIMARY KEY("trackId")
                     )""");
             st.execute("CREATE INDEX IF NOT EXISTS mood_1_IDX ON moods (mood)");
             st.execute("CREATE INDEX IF NOT EXISTS instrument_1_IDX ON moods (instrument)");
             st.execute("CREATE INDEX IF NOT EXISTS genre_1_IDX ON moods (genre)");
+            st.execute("CREATE INDEX IF NOT EXISTS bpm_1_IDX ON moods (bpm)");
         }
     }
 
@@ -76,7 +78,7 @@ public class Database {
     }
 
     public void insertData(Entity track, Map<String, Float> values, String moodName, String instrumentName,
-            String genreName) throws SQLException {
+            String genreName, float bpm) throws SQLException {
         List<String> columns = getColumns();
         for (Map.Entry<String, Float> entry : values.entrySet()) {
             String key = entry.getKey();
@@ -88,7 +90,7 @@ public class Database {
         List<Map.Entry<String, Float>> valList = new ArrayList<>(values.entrySet());
 
         try (PreparedStatement st = con.prepareStatement(
-                "insert or replace into `moods` (trackId, trackName, mood, instrument, genre, %s) values (?, ?, ?, ?, ?, %s)"
+                "insert or replace into `moods` (trackId, trackName, mood, instrument, genre, bpm, %s) values (?, ?, ?, ?, ?, ?, %s)"
                         .formatted(String.join(", ", valList.stream().map(e -> e.getKey()).toArray(String[]::new)),
                                 String.join(", ", valList.stream().map(e -> String.valueOf(e.getValue()))
                                         .toArray(String[]::new))))) {
@@ -98,6 +100,7 @@ public class Database {
             st.setString(i++, moodName);
             st.setString(i++, instrumentName);
             st.setString(i++, genreName);
+            st.setInt(i++, (int) bpm);
             st.executeUpdate();
         }
     }

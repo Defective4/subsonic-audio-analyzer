@@ -186,6 +186,7 @@ public class App {
                     }
                     logger.info("Analyzing %s...".formatted(song.id()));
                     AnalysisResponse response = analyzer.requestAnalysis(target.toString());
+                    float bpm = response.bpm();
                     logger.info("Storing results in database...");
                     logger.info("Results for %s:".formatted(song.title()));
                     String moodName = models.get("moods").classes()[response.mood()];
@@ -195,8 +196,9 @@ public class App {
                     logger.info(" Mood: %s".formatted(moodName));
                     logger.info(" Instrument: %s".formatted(instrumentName));
                     logger.info(" Genre: %s".formatted(genreName));
+                    logger.info(" BPM: %s".formatted(bpm));
                     System.err.println();
-                    db.insertData(song, response.scoreMap(), moodName, instrumentName, genreName);
+                    db.insertData(song, response.scoreMap(), moodName, instrumentName, genreName, bpm);
                 } catch (IOException e) {
                     e.printStackTrace();
                     errors++;

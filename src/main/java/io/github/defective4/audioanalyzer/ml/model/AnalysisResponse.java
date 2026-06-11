@@ -6,7 +6,7 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
-public record AnalysisResponse(JsonObject scores, float[] instruments, float[] genres, float[] moods) {
+public record AnalysisResponse(JsonObject scores, float[] instruments, float[] genres, float[] moods, float bpm) {
 
     public Map<String, Float> scoreMap() {
         Map<String, Float> scores = new HashMap<>();

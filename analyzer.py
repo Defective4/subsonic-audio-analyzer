@@ -1,4 +1,4 @@
-from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D, RhythmExtractor2013
 import numpy as np
 from os import listdir
 from fastapi import FastAPI
@@ -51,13 +51,16 @@ def ping():
 def analyze(audioPath: str):
 
     audio = MonoLoader(sampleRate=16000, filename=audioPath)()
+    bpm = round(float(RhythmExtractor2013()(audio)[0]), 1)
+
     ebModel = rootModel(audio)
     modelScores = {
         "scores": {
         },
         "instruments": [],
         "moods": [],
-        "genres": []
+        "genres": [],
+        "bpm": bpm
     }
     for model in models:
         score = round(float(np.mean(submodels[model](ebModel)[:, 1])),
