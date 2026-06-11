@@ -46,7 +46,7 @@ public class App {
             throws SQLException, IOException {
         this.analyzerURL = analyzerURL;
         db = new Repository("jdbc:sqlite:" + dbFile);
-        api = new SubsonicAPI(username, password, url);
+        api = username!=null ? new SubsonicAPI(username, password, url) : null;
     }
 
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,

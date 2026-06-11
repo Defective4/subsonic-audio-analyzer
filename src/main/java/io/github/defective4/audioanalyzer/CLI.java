@@ -83,27 +83,22 @@ public class CLI {
     });
     private static final Options COMMON_OPTIONS;
     private static final Options PLAYLIST_OPTIONS;
-    static {
 
+    static {
         COMMON_OPTIONS = new Options()
-                .addOption(Option.builder("h").desc("Display this help section").longOpt("help").build())
-                .addOption(
+                .addOption(Option.builder("h").desc("Display this help section").longOpt("help").build()).addOption(
                         Option.builder("d").desc("SQLite database location (default " + ProgramOptions.DEFAULT_DB + ")")
-                                .longOpt("db").numberOfArgs(1).argName("file").build())
-                .addOption(Option.builder("u").desc("Subsonic username (Required)").longOpt("user").numberOfArgs(1)
-                        .argName("username").required().build())
-                .addOption(Option.builder("p").desc("Subsonic password (Required)").longOpt("password").numberOfArgs(1)
-                        .argName("pass").required().build())
-                .addOption(Option.builder("s").desc("Subsonic instance URL (Required)").longOpt("url").numberOfArgs(1)
-                        .argName("url").required().build());
-        ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(AN_ALL).addOption(AN_TENSORFLOW);
+                                .longOpt("db").numberOfArgs(1).argName("file").build());
+        ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(AN_ALL).addOption(AN_TENSORFLOW)
+                .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
+                .addOption(SUBSONIC_URL);
         PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(PLS_NAME_OPTION)
+                .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
                 .addOption(PLS_GENRE_FILTER_OPTION).addOption(PLS_INSTRUMENT_FILTER_OPTION).addOption(PLS_LIMIT_OPTION)
                 .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
                 .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SIMILAR_GENRE_OPTION)
                 .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
-                .addOption(PLS_SIMILAR_INCLUDE_BPM)
-                .addOption(PLS_BPM_FILTER);
+                .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL);
     }
 
     public static void main(String[] args) throws Exception {

@@ -27,8 +27,7 @@ public class ModelLoader {
     public ModelLoader(Path modelsPath, Logger logger) throws IOException {
         for (Entry<String, String> entry : AVAILABLE_MODELS.entrySet()) {
             try (Reader reader = new InputStreamReader(
-                    Files.newInputStream(Path.of(modelsPath.toString(), entry.getValue())),
-                    StandardCharsets.UTF_8)) {
+                    Files.newInputStream(Path.of(modelsPath.toString(), entry.getValue())), StandardCharsets.UTF_8)) {
                 loadedModels.put(entry.getKey(), gson.fromJson(reader, ModelMetadata.class));
             }
         }
