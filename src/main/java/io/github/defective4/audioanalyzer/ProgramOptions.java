@@ -3,6 +3,7 @@ package io.github.defective4.audioanalyzer;
 import java.util.Arrays;
 
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import io.github.defective4.audioanalyzer.expr.EnumConverter;
 import io.github.defective4.audioanalyzer.expr.IntegerExpressionConverter;
@@ -12,13 +13,16 @@ public class ProgramOptions {
 
     public static final Option AN_ALL;
     public static final Option AN_TENSORFLOW;
-    public static final Option DB_LOCATION_OPTION;
+    public static final Options ANALYSIS_OPTIONS;
 
+    public static final Options COMMON_OPTIONS;
+    public static final Option DB_LOCATION_OPTION;
     public static final String DEFAULT_DB = "./mood.sqlite";
     public static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
     public static final int DEFAULT_LIMIT = 30;
     public static final Option HELP_OPTION;
     public static final Option PASSWORD_OPTION;
+    public static final Options PLAYLIST_OPTIONS;
     public static final Option PLS_BPM_FILTER;
     public static final Option PLS_GENRE_FILTER_OPTION;
     public static final Option PLS_INSTRUMENT_FILTER_OPTION;
@@ -36,11 +40,13 @@ public class ProgramOptions {
     public static final Option ST_OUTPUT_OPTION;
     public static final Option ST_PRINT_FORMAT_OPTION;
     public static final Option ST_SONG_OPTION;
-
+    public static final Options STATS_OPTIONS;
     public static final Option SUBSONIC_URL;
-
     public static final Option USER_OPTION;
+
     static {
+        // Define options
+
         HELP_OPTION = Option.builder("h").desc("Display this help section").longOpt("help").build();
         DB_LOCATION_OPTION = Option.builder("d")
                 .desc("SQLite database location (default " + ProgramOptions.DEFAULT_DB + ")").longOpt("db")
@@ -108,6 +114,23 @@ public class ProgramOptions {
                 .desc("ID or name of a base song to find similar songs to it.").build();
         SUBSONIC_URL = Option.builder("s").desc("Subsonic instance URL (Required)").longOpt("url").numberOfArgs(1)
                 .argName("url").required().build();
+
+        // Define option groups
+
+        COMMON_OPTIONS = new Options().addOption(HELP_OPTION).addOption(DB_LOCATION_OPTION);
+        ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(AN_ALL).addOption(AN_TENSORFLOW)
+                .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
+                .addOption(SUBSONIC_URL);
+        PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(PLS_NAME_OPTION)
+                .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
+                .addOption(PLS_GENRE_FILTER_OPTION).addOption(PLS_INSTRUMENT_FILTER_OPTION).addOption(PLS_LIMIT_OPTION)
+                .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
+                .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SIMILAR_GENRE_OPTION)
+                .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
+                .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL)
+                .addOption(PLS_VOCALITY_FILTER_OPTION);
+        STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
+                .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
     }
 
     private ProgramOptions() {}

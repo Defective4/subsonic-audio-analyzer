@@ -25,8 +25,6 @@ public class CLI {
         Options ops();
     }
 
-    private static final Options ANALYSIS_OPTIONS;
-
     private static final Map<String, CLIConsumer> COMMANDS = Map.of("analyze", new CLIConsumer() {
 
         @Override
@@ -99,26 +97,6 @@ public class CLI {
             return STATS_OPTIONS;
         }
     });
-    private static final Options COMMON_OPTIONS;
-    private static final Options PLAYLIST_OPTIONS;
-    private static final Options STATS_OPTIONS;
-    static {
-
-        COMMON_OPTIONS = new Options().addOption(HELP_OPTION).addOption(DB_LOCATION_OPTION);
-        ANALYSIS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(AN_ALL).addOption(AN_TENSORFLOW)
-                .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
-                .addOption(SUBSONIC_URL);
-        PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(PLS_NAME_OPTION)
-                .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
-                .addOption(PLS_GENRE_FILTER_OPTION).addOption(PLS_INSTRUMENT_FILTER_OPTION).addOption(PLS_LIMIT_OPTION)
-                .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
-                .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SIMILAR_GENRE_OPTION)
-                .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
-                .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL)
-                .addOption(PLS_VOCALITY_FILTER_OPTION);
-        STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
-                .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
-    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1 || !COMMANDS.containsKey(args[0])) {
