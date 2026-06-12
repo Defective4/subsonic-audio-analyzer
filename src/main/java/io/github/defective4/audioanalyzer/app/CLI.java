@@ -29,7 +29,7 @@ public class CLI {
 
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            prog.printEnvironment(hasOption(cli, ENV_UNCENSOR));
+            prog.printEnvironment(hasOption(cli, ENV_UNCENSOR_OPTION));
             return true;
         }
 
@@ -46,9 +46,9 @@ public class CLI {
 
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            boolean notAnalyzeAll = cli.hasOption(AN_ALL);
-            String filterArtist = cli.getOptionValue(AN_FILTER_ARTIST);
-            String filterAlbumArtist = cli.getOptionValue(AN_FILTER_ALBUM_ARTIST);
+            boolean notAnalyzeAll = cli.hasOption(AN_ALL_OPTION);
+            String filterArtist = cli.getOptionValue(AN_FILTER_ARTIST_OPTION);
+            String filterAlbumArtist = cli.getOptionValue(AN_FILTER_ALBUM_ARTIST_OPTION);
             prog.analyze(!notAnalyzeAll, filterArtist, filterAlbumArtist);
             return true;
         }
@@ -73,7 +73,7 @@ public class CLI {
             String replacePlaylist = getOptionValue(cli, PLS_REPLACE_OPTION, null);
             int limit = getParsedOptionValue(cli, PLS_LIMIT_OPTION, DEFAULT_LIMIT);
             boolean newPublic = hasOption(cli, PLS_PUBLIC_OPTION);
-            NumericExpression bpmExpr = getParsedOptionValue(cli, PLS_BPM_FILTER, null);
+            NumericExpression bpmExpr = getParsedOptionValue(cli, PLS_BPM_FILTER_OPTION, null);
             NumericExpression vocalExpr = getParsedOptionValue(cli, PLS_VOCALITY_FILTER_OPTION, null);
 
             if (replacePlaylist == null && playlistName == null) {
@@ -84,8 +84,9 @@ public class CLI {
             boolean similarMood = hasOption(cli, PLS_SAME_MOOD_OPTION);
             boolean similarInstrument = hasOption(cli, PLS_SAME_INSTRUMENT_OPTION);
             boolean tempo = hasOption(cli, PLS_SIMILAR_INCLUDE_BPM);
+            boolean sameArtist = hasOption(cli, PLS_SAME_ARTIST_OPTION);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic,
-                    similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr);
+                    similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr, sameArtist);
             return true;
         }
 
@@ -139,9 +140,9 @@ public class CLI {
                 String db = getOptionValue(cli, DB_LOCATION_OPTION, DEFAULT_DB);
                 String user = getOptionValue(cli, USER_OPTION);
                 String password = getOptionValue(cli, PASSWORD_OPTION);
-                String subsonicURL = getOptionValue(cli, SUBSONIC_URL);
+                String subsonicURL = getOptionValue(cli, SUBSONIC_URL_OPTION);
                 if (subsonicURL != null && !subsonicURL.endsWith("/")) subsonicURL = subsonicURL + "/";
-                String essentiaURL = getOptionValue(cli, AN_TENSORFLOW, DEFAULT_ESSENTIA);
+                String essentiaURL = getOptionValue(cli, AN_TENSORFLOW_OPTION, DEFAULT_ESSENTIA);
                 if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
                 App prog = new App(db, user, password == null ? new char[0] : password.toCharArray(), subsonicURL,

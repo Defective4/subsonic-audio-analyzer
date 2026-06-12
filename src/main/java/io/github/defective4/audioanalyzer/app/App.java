@@ -70,7 +70,7 @@ public class App {
             Map<String, ModelMetadata> models = modelLoader.getLoadedModels();
             checkAPI();
             logger.info("Downloading track lists...");
-            List<Entity> songs = api.getAllMusic(logger, filterArtist,filterAlbumArtist);
+            List<Entity> songs = api.getAllMusic(logger, filterArtist, filterAlbumArtist);
             logger.info("Downloaded information about %s songs".formatted(songs.size()));
             logger.info("Starting analysis...");
 
@@ -135,9 +135,9 @@ public class App {
     }
 
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
-            String playlistName, String replacePlaylist, int limit, boolean newPublic, boolean similarGenre,
-            boolean similarMood, boolean similarInstrument, boolean includeTempo, NumericExpression bpmExpr,
-            NumericExpression vocalExpr) throws SQLException, IOException {
+            String playlistName, String replacePlaylist, int limit, boolean newPublic, boolean sameGenre,
+            boolean sameMood, boolean sameInstrument, boolean includeTempo, NumericExpression bpmExpr,
+            NumericExpression vocalExpr, boolean sameArtist) throws SQLException, IOException {
         checkAPI();
 
         logger.info("Getting tracks from the database...");
@@ -145,7 +145,7 @@ public class App {
         logger.info("Loaded {} tracks", tracks.size());
         Collections.shuffle(tracks, random);
         Stream<Track> stream = tracks.stream();
-        if (moodFilter != null && similarMood) {
+        if (moodFilter != null && sameMood) {
             Set<String> set = tracks.stream().map(Track::mood).collect(Collectors.toUnmodifiableSet());
             if (moodFilter.equalsIgnoreCase("?list")) {
                 logger.info("Available moods:");
@@ -157,7 +157,7 @@ public class App {
             }
             stream = stream.filter(t -> t.mood().equalsIgnoreCase(moodFilter));
         }
-        if (instrumentFilter != null && !similarInstrument) {
+        if (instrumentFilter != null && !sameInstrument) {
             Set<String> set = tracks.stream().map(Track::instrument).collect(Collectors.toUnmodifiableSet());
             if (instrumentFilter.equalsIgnoreCase("?list")) {
                 logger.info("Available instruments:");
@@ -169,7 +169,7 @@ public class App {
             }
             stream = stream.filter(t -> t.instrument().equalsIgnoreCase(instrumentFilter));
         }
-        if (genreFilter != null && !similarGenre) {
+        if (genreFilter != null && !sameGenre) {
             Set<String> set = tracks.stream().map(Track::genre).collect(Collectors.toUnmodifiableSet());
             if (genreFilter.equalsIgnoreCase("?list")) {
                 logger.info("Available genres:");
@@ -203,9 +203,13 @@ public class App {
                 double diff = base.calculateSimilarity(t1, includeTempo) - base.calculateSimilarity(t2, includeTempo);
                 return diff < 0 ? -1 : diff > 0 ? 1 : 0;
             });
-            if (similarGenre) stream = stream.filter(track -> track.genre().equals(base.genre()));
-            if (similarInstrument) stream = stream.filter(track -> track.instrument().equals(base.instrument()));
-            if (similarMood) stream = stream.filter(track -> track.mood().equals(base.mood()));
+            if (sameGenre) stream = stream.filter(track -> track.genre().equals(base.genre()));
+            if (sameInstrument) stream = stream.filter(track -> track.instrument().equals(base.instrument()));
+            if (sameMood) stream = stream.filter(track -> track.mood().equals(base.mood()));
+
+            if (sameArtist)
+                stream = stream.filter(t -> t.artist().equals(base.artist()));
+
         }
 
         if (bpmExpr != null) {
