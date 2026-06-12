@@ -26,7 +26,7 @@ public class IntegerExpressionConverter implements Converter<NumericExpression, 
         try {
             val = Integer.parseInt(exprStr);
         } catch (NumberFormatException e) {
-            throw new ExpressionConversionException("The expression is invalid");
+            throw new ExpressionConversionException("The expression %s sis invalid".formatted(string));
         }
         return new NumericExpression(type, val);
     }

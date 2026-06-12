@@ -1,9 +1,15 @@
-package io.github.defective4.audioanalyzer.app;
+package io.github.defective4.audioanalyzer.app.option;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import io.github.defective4.audioanalyzer.expr.EnumConverter;
 import io.github.defective4.audioanalyzer.expr.IntegerExpressionConverter;
@@ -23,9 +29,11 @@ public class ProgramOptions {
     public static final Option HELP_OPTION;
     public static final Option PASSWORD_OPTION;
     public static final Options PLAYLIST_OPTIONS;
+    @EnvVariable("PLS_BPM_FILTER")
     public static final Option PLS_BPM_FILTER;
     public static final Option PLS_GENRE_FILTER_OPTION;
     public static final Option PLS_INSTRUMENT_FILTER_OPTION;
+    @EnvVariable("PLS_LIMIT")
     public static final Option PLS_LIMIT_OPTION;
     public static final Option PLS_MOOD_FILTER_OPTION;
     public static final Option PLS_NAME_OPTION;
@@ -39,14 +47,16 @@ public class ProgramOptions {
     public static final Option PLS_VOCALITY_FILTER_OPTION;
     public static final Option ST_OUTPUT_OPTION;
     public static final Option ST_PRINT_FORMAT_OPTION;
+    @EnvVariable("STATS_SONG")
     public static final Option ST_SONG_OPTION;
     public static final Options STATS_OPTIONS;
     public static final Option SUBSONIC_URL;
     public static final Option USER_OPTION;
 
+    private static final Map<String, Object> ENV_VARIABLES;
+
     static {
         // Define options
-
         HELP_OPTION = Option.builder("h").desc("Display this help section").longOpt("help").build();
         DB_LOCATION_OPTION = Option.builder("d")
                 .desc("SQLite database location (default " + ProgramOptions.DEFAULT_DB + ")").longOpt("db")
@@ -56,7 +66,7 @@ public class ProgramOptions {
                         + "(Example expression: \">50\"." + "This filters tracks with more than 50% vocal score.")
                 .converter(new IntegerExpressionConverter()).build();
 
-        ST_SONG_OPTION = Option.builder("s").argName("song").numberOfArgs(1)
+        ST_SONG_OPTION = Option.builder("s").longOpt("song").argName("song").numberOfArgs(1)
                 .desc("Get statistics for a particular song. Both song ID and name is supported.").build();
         ST_OUTPUT_OPTION = Option.builder("o").argName("output").numberOfArgs(1)
                 .desc("Redirects command output to a file. Use \"-\" for standard output (default).").longOpt("output")
@@ -86,8 +96,9 @@ public class ProgramOptions {
                 "If enabled, and --similar-song is used, only songs with the same mood as the base will be matched.")
                 .build();
 
-        AN_TENSORFLOW = Option.builder("t").desc("Essentia analyzer URL (Default " + DEFAULT_ESSENTIA + ")")
-                .numberOfArgs(1).argName("url").build();
+        AN_TENSORFLOW = Option.builder("t").longOpt("tensorflow-url")
+                .desc("Essentia analyzer URL (Default " + DEFAULT_ESSENTIA + ")").numberOfArgs(1).argName("url")
+                .build();
         AN_ALL = Option.builder("a").desc("Analyze all tracks, even if they are present in the database.")
                 .longOpt("all").build();
 
@@ -131,7 +142,69 @@ public class ProgramOptions {
                 .addOption(PLS_VOCALITY_FILTER_OPTION);
         STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
                 .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
+
+        ENV_VARIABLES = getEnvironmentVariables();
     }
 
     private ProgramOptions() {}
+
+    public static Object getEnvVariable(Option op, Object def) {
+        return ENV_VARIABLES.getOrDefault(op.clone(), def);
+    }
+
+    public static String getOptionValue(CommandLine cli, char option) {
+        return getOptionValue(cli, option, null);
+    }
+
+    public static String getOptionValue(CommandLine cli, char option, String def) {
+        return cli.getOptionValue(option, def);
+    }
+
+    public static String getOptionValue(CommandLine cli, Option option) {
+        return getOptionValue(cli, option, null);
+    }
+
+    public static String getOptionValue(CommandLine cli, Option option, String def) {
+        return cli.getOptionValue(option, def);
+    }
+
+    public static <T> T getParsedOptionValue(CommandLine cli, Option option, T def) throws ParseException {
+        return cli.getParsedOptionValue(option, def);
+    }
+
+    public static boolean hasOption(CommandLine cli, Option option) {
+        return cli.hasOption(option);
+    }
+
+    private static Map<String, Object> getEnvironmentVariables() {
+        Map<String, Object> vars = new HashMap<>();
+        try {
+            for (Field field : ProgramOptions.class.getFields())
+                if (field.getType() == Option.class && field.isAnnotationPresent(EnvVariable.class)) {
+                    Option opt = (Option) field.get(null);
+                    String varName = field.getAnnotation(EnvVariable.class).value();
+                    String val = System.getenv(varName);
+                    if (val == null)
+                        vars.put(opt.getLongOpt(), null);
+                    else {
+                        Object converted;
+                        if (opt.getConverter() != null) {
+                            try {
+                                converted = opt.getConverter().apply(val);
+                            } catch (Throwable e) {
+                                System.err.println("Invalid environment variable: " + e.getMessage());
+                                System.exit(4);
+                                return null;
+                            }
+                        } else {
+                            converted = val;
+                        }
+                        vars.put(opt.getLongOpt(), converted);
+                    }
+                }
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+        return Collections.unmodifiableMap(vars);
+    }
 }

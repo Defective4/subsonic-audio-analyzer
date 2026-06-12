@@ -56,6 +56,78 @@ public class App {
         api = username != null ? new SubsonicAPI(username, password, url) : null;
     }
 
+    public void analyze(boolean onlyNew) throws Exception {
+        try {
+            TensorflowAnalyzer analyzer = getTensorflow();
+            logger.info("Analyzer server OK");
+            ModelLoader modelLoader = new ModelLoader(Path.of("./models/other"), logger);
+            Map<String, ModelMetadata> models = modelLoader.getLoadedModels();
+            checkAPI();
+            logger.info("Downloading track lists...");
+            List<Entity> songs = api.getAllMusic(logger);
+            logger.info("Downloaded information about %s songs".formatted(songs.size()));
+            logger.info("Starting analysis...");
+
+            List<String> ignore = onlyNew ? db.getAllSongIDs() : List.of();
+
+            Path tmpDir = Files.createTempDirectory("e-analysis-");
+            tmpDir.toFile().deleteOnExit();
+
+            int errors = 0;
+
+            for (int i = 0; i < songs.size(); i++) {
+                Entity song = songs.get(i);
+                if (ignore.contains(song.id())) {
+                    logger.info("%s is already in database, skipped.".formatted(song.title()));
+                    continue;
+                }
+                logger.info("Starting analysis of %s (%s) [%s/%s]...".formatted(song.title(), song.id(), i + 1,
+                        songs.size()));
+                logger.info("Downloading %s...".formatted(song.id()));
+                Path target = Path.of(tmpDir.toString(), Path.of(song.path()).getFileName().toString());
+                target.toFile().deleteOnExit();
+                try {
+                    try (InputStream in = api.download(song)) {
+                        Files.copy(in, target);
+                    }
+                    logger.info("Analyzing %s...".formatted(song.id()));
+                    AnalysisResponse response = analyzer.requestAnalysis(target.toString());
+                    List<String> missing = new ArrayList<>();
+                    for (String model : ModelLoader.REQUIRED_MODELS)
+                        if (!response.scoreMap().containsKey(model)) missing.add(model);
+                    if (!missing.isEmpty()) {
+                        throw new MissingModelsException("The analyzer service is missing the following models: %s"
+                                .formatted(String.join(", ", missing.toArray(String[]::new))), missing);
+                    }
+                    float bpm = response.bpm();
+                    logger.info("Storing results in database...");
+                    logger.info("Results for %s:".formatted(song.title()));
+                    String moodName = models.get("moods").classes()[response.mood()];
+                    String instrumentName = models.get("instruments").classes()[response.instrument()];
+                    String genreName = models.get("genres").classes()[response.genre()];
+
+                    logger.info(" Mood: %s".formatted(moodName));
+                    logger.info(" Instrument: %s".formatted(instrumentName));
+                    logger.info(" Genre: %s".formatted(genreName));
+                    logger.info(" BPM: %s".formatted(bpm));
+                    System.err.println();
+                    db.insertData(song, response.scoreMap(), moodName, instrumentName, genreName, bpm);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    errors++;
+                    continue;
+                } finally {
+                    target.toFile().delete();
+                }
+            }
+            logger.info("All done!");
+            logger.info("Analyzed {} songs with {} errors", songs.size(), errors);
+        } catch (Exception e) {
+            logger.error("An error occured: " + e.getMessage());
+            throw e;
+        }
+    }
+
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
             String playlistName, String replacePlaylist, int limit, boolean newPublic, boolean similarGenre,
             boolean similarMood, boolean similarInstrument, boolean includeTempo, NumericExpression bpmExpr,
@@ -179,78 +251,6 @@ public class App {
         logger.info("Adding songs to the playlist...");
         for (Track t : similar) api.updatePlaylist(playlist.id(), t.id(), -1, pub);
         logger.info("Added {} songs to playlist {}!", similar.size(), playlist.name());
-    }
-
-    public void analyze(boolean onlyNew) throws Exception {
-        try {
-            TensorflowAnalyzer analyzer = getTensorflow();
-            logger.info("Analyzer server OK");
-            ModelLoader modelLoader = new ModelLoader(Path.of("./models/other"), logger);
-            Map<String, ModelMetadata> models = modelLoader.getLoadedModels();
-            checkAPI();
-            logger.info("Downloading track lists...");
-            List<Entity> songs = api.getAllMusic(logger);
-            logger.info("Downloaded information about %s songs".formatted(songs.size()));
-            logger.info("Starting analysis...");
-
-            List<String> ignore = onlyNew ? db.getAllSongIDs() : List.of();
-
-            Path tmpDir = Files.createTempDirectory("e-analysis-");
-            tmpDir.toFile().deleteOnExit();
-
-            int errors = 0;
-
-            for (int i = 0; i < songs.size(); i++) {
-                Entity song = songs.get(i);
-                if (ignore.contains(song.id())) {
-                    logger.info("%s is already in database, skipped.".formatted(song.title()));
-                    continue;
-                }
-                logger.info("Starting analysis of %s (%s) [%s/%s]...".formatted(song.title(), song.id(), i + 1,
-                        songs.size()));
-                logger.info("Downloading %s...".formatted(song.id()));
-                Path target = Path.of(tmpDir.toString(), Path.of(song.path()).getFileName().toString());
-                target.toFile().deleteOnExit();
-                try {
-                    try (InputStream in = api.download(song)) {
-                        Files.copy(in, target);
-                    }
-                    logger.info("Analyzing %s...".formatted(song.id()));
-                    AnalysisResponse response = analyzer.requestAnalysis(target.toString());
-                    List<String> missing = new ArrayList<>();
-                    for (String model : ModelLoader.REQUIRED_MODELS)
-                        if (!response.scoreMap().containsKey(model)) missing.add(model);
-                    if (!missing.isEmpty()) {
-                        throw new MissingModelsException("The analyzer service is missing the following models: %s"
-                                .formatted(String.join(", ", missing.toArray(String[]::new))), missing);
-                    }
-                    float bpm = response.bpm();
-                    logger.info("Storing results in database...");
-                    logger.info("Results for %s:".formatted(song.title()));
-                    String moodName = models.get("moods").classes()[response.mood()];
-                    String instrumentName = models.get("instruments").classes()[response.instrument()];
-                    String genreName = models.get("genres").classes()[response.genre()];
-
-                    logger.info(" Mood: %s".formatted(moodName));
-                    logger.info(" Instrument: %s".formatted(instrumentName));
-                    logger.info(" Genre: %s".formatted(genreName));
-                    logger.info(" BPM: %s".formatted(bpm));
-                    System.err.println();
-                    db.insertData(song, response.scoreMap(), moodName, instrumentName, genreName, bpm);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    errors++;
-                    continue;
-                } finally {
-                    target.toFile().delete();
-                }
-            }
-            logger.info("All done!");
-            logger.info("Analyzed {} songs with {} errors", songs.size(), errors);
-        } catch (Exception e) {
-            logger.error("An error occured: " + e.getMessage());
-            throw e;
-        }
     }
 
     public void printSongs(PrintFormat printFormat, String song, String output) throws SQLException, IOException {

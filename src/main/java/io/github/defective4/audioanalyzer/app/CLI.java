@@ -1,6 +1,6 @@
 package io.github.defective4.audioanalyzer.app;
 
-import static io.github.defective4.audioanalyzer.app.ProgramOptions.*;
+import static io.github.defective4.audioanalyzer.app.option.ProgramOptions.*;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -45,25 +45,25 @@ public class CLI {
     }, "generate-playlist", new CLIConsumer() {
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            String song = cli.getOptionValue(PLS_SIMILAR_SONG_OPTION, () -> null);
-            String mood = cli.getOptionValue(PLS_MOOD_FILTER_OPTION, () -> null);
-            String instrument = cli.getOptionValue(PLS_INSTRUMENT_FILTER_OPTION, () -> null);
-            String genre = cli.getOptionValue(PLS_GENRE_FILTER_OPTION, () -> null);
-            String playlistName = cli.getOptionValue(PLS_NAME_OPTION);
-            String replacePlaylist = cli.getOptionValue(PLS_REPLACE_OPTION, () -> null);
-            int limit = cli.getParsedOptionValue(PLS_LIMIT_OPTION, DEFAULT_LIMIT);
-            boolean newPublic = cli.hasOption(PLS_PUBLIC_OPTION);
-            NumericExpression bpmExpr = cli.getParsedOptionValue(PLS_BPM_FILTER, null);
-            NumericExpression vocalExpr = cli.getParsedOptionValue(PLS_VOCALITY_FILTER_OPTION, null);
+            String song = getOptionValue(cli, PLS_SIMILAR_SONG_OPTION, null);
+            String mood = getOptionValue(cli, PLS_MOOD_FILTER_OPTION, null);
+            String instrument = getOptionValue(cli, PLS_INSTRUMENT_FILTER_OPTION, null);
+            String genre = getOptionValue(cli, PLS_GENRE_FILTER_OPTION, null);
+            String playlistName = getOptionValue(cli, PLS_NAME_OPTION);
+            String replacePlaylist = getOptionValue(cli, PLS_REPLACE_OPTION, null);
+            int limit = getParsedOptionValue(cli, PLS_LIMIT_OPTION, DEFAULT_LIMIT);
+            boolean newPublic = hasOption(cli, PLS_PUBLIC_OPTION);
+            NumericExpression bpmExpr = getParsedOptionValue(cli, PLS_BPM_FILTER, null);
+            NumericExpression vocalExpr = getParsedOptionValue(cli, PLS_VOCALITY_FILTER_OPTION, null);
 
             if (replacePlaylist == null && playlistName == null) {
                 System.err.println("Missing playlist name");
                 return false;
             }
-            boolean similarGenre = cli.hasOption(PLS_SIMILAR_GENRE_OPTION);
-            boolean similarMood = cli.hasOption(PLS_SIMILAR_MOOD_OPTION);
-            boolean similarInstrument = cli.hasOption(PLS_SIMILAR_INSTRUMENT_OPTION);
-            boolean tempo = cli.hasOption(PLS_SIMILAR_INCLUDE_BPM);
+            boolean similarGenre = hasOption(cli, PLS_SIMILAR_GENRE_OPTION);
+            boolean similarMood = hasOption(cli, PLS_SIMILAR_MOOD_OPTION);
+            boolean similarInstrument = hasOption(cli, PLS_SIMILAR_INSTRUMENT_OPTION);
+            boolean tempo = hasOption(cli, PLS_SIMILAR_INCLUDE_BPM);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic,
                     similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr);
             return true;
@@ -99,25 +99,27 @@ public class CLI {
     });
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1 || !COMMANDS.containsKey(args[0])) {
-            System.err
-                    .println(!COMMANDS.containsKey(args[0]) ? "Invalid command " + args[0] : "Usage: <command> [args]");
+        String envCmd = System.getenv("A_COMMAND");
+        String cmd = envCmd != null || args.length > 0 ? envCmd != null ? envCmd : args[0] : null;
+        if (cmd == null || !COMMANDS.containsKey(cmd)) {
+            System.err.println(!COMMANDS.containsKey(cmd) ? "Invalid command " + cmd : "Usage: <command> [args]");
             System.err.println("Valid commands are:");
             COMMANDS.forEach((k, v) -> { System.err.println(" - %s: %s".formatted(k, v.desc())); });
             System.exit(1);
             return;
         }
-        Options options = COMMANDS.get(args[0]).ops();
+        Options options = COMMANDS.get(cmd).ops();
         CommandLine cli;
+
         try {
             cli = DefaultParser.builder().build().parse(options, Arrays.copyOfRange(args, 1, args.length));
             if (!cli.hasOption('h')) {
-                String db = cli.getOptionValue('d', DEFAULT_DB);
-                String user = cli.getOptionValue('u');
-                String password = cli.getOptionValue('p');
-                String subsonicURL = cli.getOptionValue('s');
+                String db = getOptionValue(cli, 'd', DEFAULT_DB);
+                String user = getOptionValue(cli, 'u');
+                String password = getOptionValue(cli, 'p');
+                String subsonicURL = getOptionValue(cli, 's');
                 if (subsonicURL != null && !subsonicURL.endsWith("/")) subsonicURL = subsonicURL + "/";
-                String essentiaURL = cli.getOptionValue('t', DEFAULT_ESSENTIA);
+                String essentiaURL = getOptionValue(cli, 't', DEFAULT_ESSENTIA);
                 if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
                 App prog = new App(db, user, password.toCharArray(), subsonicURL, essentiaURL);
