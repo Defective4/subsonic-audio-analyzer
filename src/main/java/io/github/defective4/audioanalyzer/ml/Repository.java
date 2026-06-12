@@ -17,6 +17,7 @@ import io.github.defective4.audioanalyzer.ml.model.Track;
 import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 
 public class Repository {
+    private static final String ANALYSIS_STATUS_PROPERTY = "analysis_status";
     private final Connection con;
 
     public Repository(String jdbcURL) throws SQLException {
@@ -42,6 +43,14 @@ public class Repository {
             st.execute("CREATE INDEX IF NOT EXISTS bpm_1_IDX ON moods (bpm)");
             st.execute("CREATE INDEX IF NOT EXISTS artist_1_IDX ON moods (artist)");
             st.execute("CREATE INDEX IF NOT EXISTS failed_1_IDX ON moods (failed)");
+            st.execute("""
+                    CREATE TABLE IF NOT EXISTS "properties" (
+                    	property TEXT NOT NULL,
+                    	value TEXT NOT NULL,
+                    	CONSTRAINT NewTable_PK PRIMARY KEY (property)
+                    ); """);
+            st.execute("insert or ignore into `properties` (property, value) values (\"%s\", \"%s\")"
+                    .formatted(ANALYSIS_STATUS_PROPERTY, AnalysisState.UNANALYZED.name()));
         }
     }
 
@@ -67,10 +76,19 @@ public class Repository {
         return Collections.unmodifiableList(tracks);
     }
 
+    public AnalysisState getAnalysisState() throws SQLException {
+        try (Statement st = con.createStatement();
+                ResultSet set = st.executeQuery(
+                        "select value from `properties` where property = \"%s\"".formatted(ANALYSIS_STATUS_PROPERTY))) {
+            set.next();
+            return AnalysisState.valueOf(set.getString(1));
+        }
+    }
+
     public Optional<Track> getTrackByIdOrName(String idOrName) throws SQLException {
         List<String> cols = getColumns();
-        try (PreparedStatement st = con
-                .prepareStatement("select * from `moods` where (`trackId` = ? or `trackName` = ?) and `failed` = false")) {
+        try (PreparedStatement st = con.prepareStatement(
+                "select * from `moods` where (`trackId` = ? or `trackName` = ?) and `failed` = false")) {
             st.setString(1, idOrName);
             st.setString(2, idOrName);
             try (ResultSet set = st.executeQuery()) {
@@ -113,6 +131,14 @@ public class Repository {
             st.setString(i++, failed == null ? null : failed.getMessage());
             st.setString(i++, song.artist());
             st.executeUpdate();
+        }
+    }
+
+    public void setAnalysisState(AnalysisState state) throws SQLException {
+        try (PreparedStatement st = con.prepareStatement("update `properties` set `value` = ? where `property` = ?")) {
+            st.setString(1, state.name());
+            st.setString(2, ANALYSIS_STATUS_PROPERTY);
+            st.execute();
         }
     }
 

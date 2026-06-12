@@ -34,6 +34,7 @@ import io.github.defective4.audioanalyzer.exception.SubsonicException;
 import io.github.defective4.audioanalyzer.expr.NumericExpression;
 import io.github.defective4.audioanalyzer.format.MarkdownTableWriter;
 import io.github.defective4.audioanalyzer.format.PrintFormat;
+import io.github.defective4.audioanalyzer.ml.AnalysisState;
 import io.github.defective4.audioanalyzer.ml.ModelLoader;
 import io.github.defective4.audioanalyzer.ml.Repository;
 import io.github.defective4.audioanalyzer.ml.TensorflowAnalyzer;
@@ -81,6 +82,7 @@ public class App {
 
             int errors = 0;
 
+            db.setAnalysisState(AnalysisState.ABORTED);
             for (int i = 0; i < songs.size(); i++) {
                 Entity song = songs.get(i);
                 if (ignore.contains(song.id())) {
@@ -126,6 +128,7 @@ public class App {
                     target.toFile().delete();
                 }
             }
+            db.setAnalysisState(AnalysisState.ANALYZED);
             logger.info("All done!");
             logger.info("Analyzed {} songs with {} errors", songs.size(), errors);
         } catch (Exception e) {
@@ -314,6 +317,8 @@ public class App {
                 default -> throw new IllegalArgumentException("Unknown print format");
             }
         }
+        System.out.println();
+        logger.info("Database analysis state: " + db.getAnalysisState());
         logger.info("Done!");
     }
 
