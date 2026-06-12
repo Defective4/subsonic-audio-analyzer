@@ -142,7 +142,7 @@ public class App {
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
             String playlistName, String replacePlaylist, int limit, boolean newPublic, boolean sameGenre,
             boolean sameMood, boolean sameInstrument, boolean includeTempo, NumericExpression bpmExpr,
-            NumericExpression vocalExpr, boolean sameArtist, String filterArtist)
+            NumericExpression vocalExpr, boolean sameArtist, String filterArtist, boolean shuffleSimilar)
             throws SQLException, IOException, InterruptedException {
         checkAPI();
         if (db.getAnalysisState() == AnalysisState.UNANALYZED) {
@@ -258,7 +258,7 @@ public class App {
         }
 
         List<Track> similar = new ArrayList<>(stream.limit(limit).toList());
-        Collections.shuffle(similar);
+        if (shuffleSimilar) Collections.shuffle(similar);
 
         logger.info("Updating playlist...");
         Playlist playlist;

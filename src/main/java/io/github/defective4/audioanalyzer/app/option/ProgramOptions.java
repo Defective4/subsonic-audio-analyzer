@@ -63,6 +63,8 @@ public class ProgramOptions {
     public static final Option PLS_SAME_INSTRUMENT_OPTION;
     @EnvironmentVariable("PLS_SAME_MOOD")
     public static final Option PLS_SAME_MOOD_OPTION;
+    @EnvironmentVariable("PLS_SUFFLE_SIMILAR")
+    public static final Option PLS_SHUFFLE_SIMILAR_OPTION;
     @EnvironmentVariable("PLS_SAME_INCLUDE_BPM")
     public static final Option PLS_SIMILAR_INCLUDE_BPM;
     @EnvironmentVariable("PLS_SIMILAR_SONG")
@@ -90,6 +92,8 @@ public class ProgramOptions {
 
     static {
         // Define options
+        PLS_SHUFFLE_SIMILAR_OPTION = Option.builder().longOpt("shuffle-similar")
+                .desc("If enabled, similar songs will be added to the playlist in a random order.").build();
         PLS_SAME_ARTIST_OPTION = Option.builder().longOpt("same-artist")
                 .desc("Filter songs with the same artist as in --similar-song").build();
         FILTER_ARTIST_OPTION = Option.builder().longOpt("artist-filter").numberOfArgs(1).argName("artist")
@@ -182,8 +186,8 @@ public class ProgramOptions {
                 .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SAME_GENRE_OPTION).addOption(PLS_SAME_MOOD_OPTION)
                 .addOption(PLS_SAME_INSTRUMENT_OPTION).addOption(PLS_SIMILAR_INCLUDE_BPM)
                 .addOption(PLS_BPM_FILTER_OPTION).addOption(SUBSONIC_URL_OPTION).addOption(PLS_VOCALITY_FILTER_OPTION)
-                .addOption(PLS_SAME_ARTIST_OPTION)
-                .addOption(FILTER_ARTIST_OPTION);
+                .addOption(PLS_SAME_ARTIST_OPTION).addOption(FILTER_ARTIST_OPTION)
+                .addOption(PLS_SHUFFLE_SIMILAR_OPTION);
         STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
                 .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
         ENV_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ENV_UNCENSOR_OPTION);

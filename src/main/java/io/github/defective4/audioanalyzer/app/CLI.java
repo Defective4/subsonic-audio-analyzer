@@ -86,9 +86,10 @@ public class CLI {
             boolean tempo = hasOption(cli, PLS_SIMILAR_INCLUDE_BPM);
             boolean sameArtist = hasOption(cli, PLS_SAME_ARTIST_OPTION);
             String filterPlaylist = getOptionValue(cli, FILTER_ARTIST_OPTION);
+            boolean shuffleSimilar = hasOption(cli, PLS_SHUFFLE_SIMILAR_OPTION);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic,
-                    similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr, sameArtist,
-                    filterPlaylist);
+                    similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr, sameArtist, filterPlaylist,
+                    shuffleSimilar);
             return true;
         }
 
