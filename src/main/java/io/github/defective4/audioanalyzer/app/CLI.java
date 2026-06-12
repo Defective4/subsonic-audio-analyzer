@@ -25,7 +25,24 @@ public class CLI {
         Options ops();
     }
 
-    private static final Map<String, CLIConsumer> COMMANDS = Map.of("analyze", new CLIConsumer() {
+    private static final Map<String, CLIConsumer> COMMANDS = Map.of("env", new CLIConsumer() {
+
+        @Override
+        public boolean consume(CommandLine cli, App prog) throws Exception {
+            prog.printEnvironment(hasOption(cli, ENV_UNCENSOR));
+            return true;
+        }
+
+        @Override
+        public String desc() {
+            return "Print information about available environment variables";
+        }
+
+        @Override
+        public Options ops() {
+            return ENV_OPTIONS;
+        }
+    }, "analyze", new CLIConsumer() {
 
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
@@ -60,9 +77,9 @@ public class CLI {
                 System.err.println("Missing playlist name");
                 return false;
             }
-            boolean similarGenre = hasOption(cli, PLS_SIMILAR_GENRE_OPTION);
-            boolean similarMood = hasOption(cli, PLS_SIMILAR_MOOD_OPTION);
-            boolean similarInstrument = hasOption(cli, PLS_SIMILAR_INSTRUMENT_OPTION);
+            boolean similarGenre = hasOption(cli, PLS_SAME_GENRE_OPTION);
+            boolean similarMood = hasOption(cli, PLS_SAME_MOOD_OPTION);
+            boolean similarInstrument = hasOption(cli, PLS_SAME_INSTRUMENT_OPTION);
             boolean tempo = hasOption(cli, PLS_SIMILAR_INCLUDE_BPM);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic,
                     similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr);
@@ -99,7 +116,7 @@ public class CLI {
     });
 
     public static void main(String[] args) throws Exception {
-        String envCmd = System.getenv("A_COMMAND");
+        String envCmd = System.getenv(App.COMMAND_ENV);
         String cmd = envCmd != null || args.length > 0 ? envCmd != null ? envCmd : args[0] : null;
         if (cmd == null || !COMMANDS.containsKey(cmd)) {
             System.err.println(
@@ -113,8 +130,9 @@ public class CLI {
         CommandLine cli;
 
         try {
-            cli = DefaultParser.builder().build().parse(options, Arrays.copyOfRange(args, 1, args.length));
-            if (!cli.hasOption('h')) {
+            cli = DefaultParser.builder().build().parse(options,
+                    envCmd == null ? Arrays.copyOfRange(args, 1, args.length) : args);
+            if (!cli.hasOption(HELP_OPTION)) {
                 String db = getOptionValue(cli, DB_LOCATION_OPTION, DEFAULT_DB);
                 String user = getOptionValue(cli, USER_OPTION);
                 String password = getOptionValue(cli, PASSWORD_OPTION);
@@ -123,8 +141,9 @@ public class CLI {
                 String essentiaURL = getOptionValue(cli, AN_TENSORFLOW, DEFAULT_ESSENTIA);
                 if (!essentiaURL.endsWith("/")) essentiaURL = essentiaURL + "/";
 
-                App prog = new App(db, user, password.toCharArray(), subsonicURL, essentiaURL);
-                if (COMMANDS.get(args[0]).consume(cli, prog)) return;
+                App prog = new App(db, user, password == null ? new char[0] : password.toCharArray(), subsonicURL,
+                        essentiaURL);
+                if (COMMANDS.get(cmd).consume(cli, prog)) return;
             }
         } catch (ParseException e) {
             System.err.println(e.getMessage());

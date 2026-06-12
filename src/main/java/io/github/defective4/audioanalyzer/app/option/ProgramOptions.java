@@ -17,67 +17,74 @@ import io.github.defective4.audioanalyzer.format.PrintFormat;
 
 public class ProgramOptions {
 
-    @EnvVariable("ANALYZE_ALL")
+    @EnvironmentVariable("ANALYZE_ALL")
     public static final Option AN_ALL;
-    @EnvVariable(value = "TENSORFLOW_URL", sensitive = true)
+    @EnvironmentVariable(value = "TENSORFLOW_URL", sensitive = true)
     public static final Option AN_TENSORFLOW;
     public static final Options ANALYSIS_OPTIONS;
 
     public static final Options COMMON_OPTIONS;
-    @EnvVariable(value = "DB_FILE", sensitive = true)
+    @EnvironmentVariable(value = "DB_FILE", sensitive = true)
     public static final Option DB_LOCATION_OPTION;
     public static final String DEFAULT_DB = "./mood.sqlite";
     public static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
     public static final int DEFAULT_LIMIT = 30;
+    public static final Options ENV_OPTIONS;
+    @EnvironmentVariable("ENV_UNCENSOR")
+    public static final Option ENV_UNCENSOR;
     public static final Option HELP_OPTION;
-    @EnvVariable(value = "SUBSONIC_PASSWORD", sensitive = true)
+    @EnvironmentVariable(value = "SUBSONIC_PASSWORD", sensitive = true)
     public static final Option PASSWORD_OPTION;
     public static final Options PLAYLIST_OPTIONS;
-    @EnvVariable("PLS_BPM_FILTER")
+    @EnvironmentVariable("PLS_BPM_FILTER")
     public static final Option PLS_BPM_FILTER;
-    @EnvVariable("PLS_GENRE_FILTER")
+    @EnvironmentVariable("PLS_GENRE_FILTER")
     public static final Option PLS_GENRE_FILTER_OPTION;
-    @EnvVariable("PLS_INSTRUMENT_FILTER")
+    @EnvironmentVariable("PLS_INSTRUMENT_FILTER")
     public static final Option PLS_INSTRUMENT_FILTER_OPTION;
-    @EnvVariable("PLS_LIMIT")
+    @EnvironmentVariable("PLS_LIMIT")
     public static final Option PLS_LIMIT_OPTION;
-    @EnvVariable("PLS_MOOD_FILTER")
+    @EnvironmentVariable("PLS_MOOD_FILTER")
     public static final Option PLS_MOOD_FILTER_OPTION;
     public static final Option PLS_NAME_OPTION;
-    @EnvVariable("PLS_PUBLIC")
+    @EnvironmentVariable("PLS_PUBLIC")
     public static final Option PLS_PUBLIC_OPTION;
-    @EnvVariable("PLS_REPLACE_PLAYLIST")
+    @EnvironmentVariable("PLS_REPLACE_PLAYLIST")
     public static final Option PLS_REPLACE_OPTION;
-    @EnvVariable("PLS_SAME_GENRE")
-    public static final Option PLS_SIMILAR_GENRE_OPTION;
-    @EnvVariable("PLS_SAME_INCLUDE_BPM")
+    @EnvironmentVariable("PLS_SAME_GENRE")
+    public static final Option PLS_SAME_GENRE_OPTION;
+    @EnvironmentVariable("PLS_SAME_INSTRUMENT")
+    public static final Option PLS_SAME_INSTRUMENT_OPTION;
+    @EnvironmentVariable("PLS_SAME_MOOD")
+    public static final Option PLS_SAME_MOOD_OPTION;
+    @EnvironmentVariable("PLS_SAME_INCLUDE_BPM")
     public static final Option PLS_SIMILAR_INCLUDE_BPM;
-    @EnvVariable("PLS_SAME_INSTRUMENT")
-    public static final Option PLS_SIMILAR_INSTRUMENT_OPTION;
-    @EnvVariable("PLS_SAME_MOOD")
-    public static final Option PLS_SIMILAR_MOOD_OPTION;
-    @EnvVariable("PLS_SIMILAR_SONG")
+    @EnvironmentVariable("PLS_SIMILAR_SONG")
     public static final Option PLS_SIMILAR_SONG_OPTION;
-    @EnvVariable("PLS_VOCAL_FILTER")
+    @EnvironmentVariable("PLS_VOCAL_FILTER")
     public static final Option PLS_VOCALITY_FILTER_OPTION;
-    @EnvVariable("STATS_OUTPUT_FILE")
+    @EnvironmentVariable("STATS_OUTPUT_FILE")
     public static final Option ST_OUTPUT_OPTION;
-    @EnvVariable("STATS_FORMAT")
+    @EnvironmentVariable("STATS_FORMAT")
     public static final Option ST_PRINT_FORMAT_OPTION;
-    @EnvVariable("STATS_SONG")
+
+    @EnvironmentVariable("STATS_SONG")
     public static final Option ST_SONG_OPTION;
+
     public static final Options STATS_OPTIONS;
 
-    @EnvVariable(value = "SUSBONIC_URL", sensitive = true)
+    @EnvironmentVariable(value = "SUBSONIC_URL", sensitive = true)
     public static final Option SUBSONIC_URL;
 
-    @EnvVariable(value = "SUBSONIC_USER", sensitive = true)
+    @EnvironmentVariable(value = "SUBSONIC_USER", sensitive = true)
     public static final Option USER_OPTION;
 
     private static final Map<String, Object> ENV_VARIABLES;
 
     static {
         // Define options
+        ENV_UNCENSOR = Option.builder().longOpt("uncensor").desc("Do not censor sensitive environment variables")
+                .build();
         HELP_OPTION = Option.builder("h").desc("Display this help section").longOpt("help").build();
         DB_LOCATION_OPTION = Option.builder("d")
                 .desc("SQLite database location (default " + ProgramOptions.DEFAULT_DB + ")").longOpt("db")
@@ -107,13 +114,13 @@ public class ProgramOptions {
                 .converter(new IntegerExpressionConverter()).build();
         PLS_SIMILAR_INCLUDE_BPM = Option.builder().longOpt("include-bpm")
                 .desc("Include tempo calculations in similar songs analysis.").build();
-        PLS_SIMILAR_GENRE_OPTION = Option.builder().longOpt("same-genre").desc(
+        PLS_SAME_GENRE_OPTION = Option.builder().longOpt("same-genre").desc(
                 "If enabled, and --similar-song is used, only songs with the same genre as the base will be matched.")
                 .build();
-        PLS_SIMILAR_INSTRUMENT_OPTION = Option.builder().longOpt("same-instrument").desc(
+        PLS_SAME_INSTRUMENT_OPTION = Option.builder().longOpt("same-instrument").desc(
                 "If enabled, and --similar-song is used, only songs with the same instrument as the base will be matched.")
                 .build();
-        PLS_SIMILAR_MOOD_OPTION = Option.builder().longOpt("same-mood").desc(
+        PLS_SAME_MOOD_OPTION = Option.builder().longOpt("same-mood").desc(
                 "If enabled, and --similar-song is used, only songs with the same mood as the base will be matched.")
                 .build();
 
@@ -157,20 +164,20 @@ public class ProgramOptions {
                 .addOption(ProgramOptions.USER_OPTION).addOption(ProgramOptions.PASSWORD_OPTION)
                 .addOption(PLS_GENRE_FILTER_OPTION).addOption(PLS_INSTRUMENT_FILTER_OPTION).addOption(PLS_LIMIT_OPTION)
                 .addOption(PLS_MOOD_FILTER_OPTION).addOption(PLS_PUBLIC_OPTION).addOption(PLS_REPLACE_OPTION)
-                .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SIMILAR_GENRE_OPTION)
-                .addOption(PLS_SIMILAR_MOOD_OPTION).addOption(PLS_SIMILAR_INSTRUMENT_OPTION)
-                .addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER).addOption(SUBSONIC_URL)
-                .addOption(PLS_VOCALITY_FILTER_OPTION);
+                .addOption(PLS_SIMILAR_SONG_OPTION).addOption(PLS_SAME_GENRE_OPTION).addOption(PLS_SAME_MOOD_OPTION)
+                .addOption(PLS_SAME_INSTRUMENT_OPTION).addOption(PLS_SIMILAR_INCLUDE_BPM).addOption(PLS_BPM_FILTER)
+                .addOption(SUBSONIC_URL).addOption(PLS_VOCALITY_FILTER_OPTION);
         STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
                 .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
+        ENV_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ENV_UNCENSOR);
 
         ENV_VARIABLES = getEnvironmentVariables();
     }
 
     private ProgramOptions() {}
 
-    public static Object getEnvVariable(Option op, Object def) {
-        return ENV_VARIABLES.getOrDefault(op.clone(), def);
+    public static Object getEnvironmentVariable(String key) {
+        return ENV_VARIABLES.get(key);
     }
 
     public static String getOptionValue(CommandLine cli, Option option) {
@@ -196,9 +203,9 @@ public class ProgramOptions {
         Map<String, Object> vars = new HashMap<>();
         try {
             for (Field field : ProgramOptions.class.getFields())
-                if (field.getType() == Option.class && field.isAnnotationPresent(EnvVariable.class)) {
+                if (field.getType() == Option.class && field.isAnnotationPresent(EnvironmentVariable.class)) {
                     Option opt = (Option) field.get(null);
-                    String varName = field.getAnnotation(EnvVariable.class).value();
+                    String varName = field.getAnnotation(EnvironmentVariable.class).value();
                     String val = System.getenv(varName);
                     if (val == null)
                         vars.put(opt.getLongOpt(), null);

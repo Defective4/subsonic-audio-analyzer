@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,12 +20,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import io.github.defective4.audioanalyzer.app.option.EnvironmentVariable;
+import io.github.defective4.audioanalyzer.app.option.ProgramOptions;
 import io.github.defective4.audioanalyzer.exception.MissingModelsException;
 import io.github.defective4.audioanalyzer.exception.SubsonicException;
 import io.github.defective4.audioanalyzer.expr.NumericExpression;
@@ -41,6 +45,8 @@ import io.github.defective4.audioanalyzer.subsonic.model.Entity;
 import io.github.defective4.audioanalyzer.subsonic.model.Playlist;
 
 public class App {
+
+    public static final String COMMAND_ENV = "A_COMMAND";
 
     private final String analyzerURL;
 
@@ -251,6 +257,25 @@ public class App {
         logger.info("Adding songs to the playlist...");
         for (Track t : similar) api.updatePlaylist(playlist.id(), t.id(), -1, pub);
         logger.info("Added {} songs to playlist {}!", similar.size(), playlist.name());
+    }
+
+    public void printEnvironment(boolean uncensor) {
+        try {
+            String cmd = System.getenv(COMMAND_ENV);
+            cmd = cmd == null ? "<unset>" : cmd;
+            System.out.println(COMMAND_ENV + "=" + cmd);
+            for (Field field : ProgramOptions.class.getFields())
+                if (field.getType() == Option.class && field.isAnnotationPresent(EnvironmentVariable.class)) {
+                    String key = ((Option) field.get(null)).getLongOpt();
+                    EnvironmentVariable var = field.getAnnotation(EnvironmentVariable.class);
+                    Object val = ProgramOptions.getEnvironmentVariable(key);
+                    String valString = val == null ? "<unset>" : String.valueOf(val);
+                    if (!uncensor && var.sensitive() && val != null) valString = valString.replaceAll(".", "*");
+                    System.out.println("%s=%s".formatted(var.value(), valString));
+                }
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public void printSongs(PrintFormat printFormat, String song, String output) throws SQLException, IOException {
