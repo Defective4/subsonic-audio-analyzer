@@ -1,8 +1,11 @@
 package io.github.defective4.audioanalyzer.app;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
@@ -57,6 +60,8 @@ public class App {
     private final Repository db;
     private final Gson gson = new Gson();
     private final Logger logger = LoggerFactory.getLogger(CLI.class);
+    private final ModelLoader modelLoader = new ModelLoader(Path.of("./models"), logger);
+
     private final Random random = new Random();
 
     public App(String dbFile, String username, char[] password, String url, String analyzerURL)
@@ -70,7 +75,7 @@ public class App {
         try {
             TensorflowAnalyzer analyzer = getTensorflow();
             logger.info("Analyzer server OK");
-            ModelLoader modelLoader = new ModelLoader(Path.of("./models/other"), logger);
+            modelLoader.loadModels();
             Map<String, ModelMetadata> models = modelLoader.getLoadedModels();
             checkAPI();
             logger.info("Downloading track lists...");
@@ -138,6 +143,25 @@ public class App {
             logger.error("An error occured: " + e.getMessage());
             throw e;
         }
+    }
+
+    public void checkModels() throws IOException {
+        int missing = 0;
+        StringWriter writer = new StringWriter();
+        try (PrintWriter pw = new PrintWriter(writer)) {
+            pw.println("List of models:");
+            for (String key : ModelLoader.REQUIRED_MODEL_FILES.keySet()) {
+                File f = new File(modelLoader.getModelsPath().toFile(), key);
+                pw.print("- [%s] ".formatted(f.isFile() ? "+" : "-"));
+                pw.println(key);
+                if (!f.isFile()) missing++;
+            }
+        }
+        System.out.println(writer.toString());
+        if (missing > 0)
+            logger.warn("{} models are missing. Run --update to download missing models", missing);
+        else
+            modelLoader.loadModels();
     }
 
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,

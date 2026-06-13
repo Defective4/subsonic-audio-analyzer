@@ -106,6 +106,22 @@ public class CLI {
         public Options ops() {
             return STATS_OPTIONS;
         }
+    }, "models", new CLIConsumer() {
+        @Override
+        public boolean consume(CommandLine cli, App prog) throws Exception {
+            prog.checkModels();
+            return true;
+        }
+
+        @Override
+        public String desc() {
+            return "Check and download ml models required for program operation";
+        }
+
+        @Override
+        public Options ops() {
+            return COMMON_OPTIONS;
+        }
     }, "playlist-tools", new CLIConsumer() {
 
         @Override
@@ -191,7 +207,7 @@ public class CLI {
         System.exit(2);
     }
 
-    private static <K, V> Map<K, V> map(Object... kv) {
+    public static <K, V> Map<K, V> map(Object... kv) {
         Map<K, V> map = new LinkedHashMap<>();
         for (int i = 0; i < kv.length; i += 2) map.put((K) kv[i], (V) kv[i + 1]);
         return Collections.unmodifiableMap(map);
