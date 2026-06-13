@@ -6,6 +6,7 @@ MAIN_BIN=$BIN_DIR/subsonic-analysis-tool
 PY_BIN=$BIN_DIR/subsonic-analysis-service
 
 sudo apt install -y wget tar
+rm -rf debian/usr
 
 root=$(pwd)
 

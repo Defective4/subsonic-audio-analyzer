@@ -1,0 +1,2 @@
+#!/bin/sh
+rm -rf /usr/share/subsonic-analyzer/analyzer/venv
