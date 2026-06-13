@@ -30,11 +30,13 @@ chmod +x $MAIN_BIN
 mkdir $DEB_SHARE/analyzer
 cp analyzer.py $DEB_SHARE/analyzer/
 
-echo "#!/bin/bash
+echo '#!/bin/bash
+pwd=$(pwd)
 cd /usr/share/subsonic-analyzer/analyzer
 source venv/bin/activate
-uvicorn $* analyzer:api
-" > $PY_BIN
+cd $pwd
+uvicorn $* --app-dir /usr/share/subsonic-analyzer/analyzer analyzer:api
+' > $PY_BIN
 
 chmod +x $PY_BIN
 cd $root

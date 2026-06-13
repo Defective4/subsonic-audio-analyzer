@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -156,7 +157,7 @@ public class App {
                     logger.info("Downloading {}...", url);
                     File target = new File(modelLoader.getModelsPath().toFile(), entry.getKey());
                     if (target.getParentFile() != null) target.getParentFile().mkdirs();
-                    Files.copy(in, target.toPath());
+                    Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
             }
         }
