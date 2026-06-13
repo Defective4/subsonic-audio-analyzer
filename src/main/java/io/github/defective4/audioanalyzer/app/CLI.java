@@ -31,9 +31,9 @@ public class CLI {
 
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            boolean notAnalyzeAll = cli.hasOption(AN_ALL_OPTION);
-            String filterArtist = cli.getOptionValue(FILTER_ARTIST_OPTION);
-            String filterAlbumArtist = cli.getOptionValue(AN_FILTER_ALBUM_ARTIST_OPTION);
+            boolean notAnalyzeAll = hasOption(cli, AN_ALL_OPTION);
+            String filterArtist = getOptionValue(cli, FILTER_ARTIST_OPTION);
+            String filterAlbumArtist = getOptionValue(cli, AN_FILTER_ALBUM_ARTIST_OPTION);
             prog.analyze(!notAnalyzeAll, filterArtist, filterAlbumArtist);
             return true;
         }
@@ -92,8 +92,8 @@ public class CLI {
     }, "stats", new CLIConsumer() {
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            prog.printSongs(cli.getParsedOptionValue(ST_PRINT_FORMAT_OPTION, PrintFormat.JSON),
-                    cli.getOptionValue(ST_SONG_OPTION), cli.getOptionValue(ST_OUTPUT_OPTION, "-"));
+            prog.printSongs(getParsedOptionValue(cli, ST_PRINT_FORMAT_OPTION, PrintFormat.JSON),
+                    getOptionValue(cli, ST_SONG_OPTION), getOptionValue(cli, ST_OUTPUT_OPTION, "-"));
             return true;
         }
 
@@ -109,7 +109,9 @@ public class CLI {
     }, "models", new CLIConsumer() {
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            prog.checkModels();
+            boolean update = hasOption(cli, MODELS_UPDATE);
+            String baseURL = getParsedOptionValue(cli, MODELS_BASE_URL, DEFAULT_MODELS_BASE_URL).toString();
+            prog.checkModels(update, baseURL);
             return true;
         }
 
@@ -120,14 +122,14 @@ public class CLI {
 
         @Override
         public Options ops() {
-            return COMMON_OPTIONS;
+            return MODELS_OPTIONS;
         }
     }, "playlist-tools", new CLIConsumer() {
 
         @Override
         public boolean consume(CommandLine cli, App prog) throws Exception {
-            String createNamed = cli.getOptionValue(CREATE_PLAYLIST_OPTION);
-            String remove = cli.getOptionValue(DELETE_PLAYLIST_OPTION);
+            String createNamed = getOptionValue(cli, CREATE_PLAYLIST_OPTION);
+            String remove = getOptionValue(cli, DELETE_PLAYLIST_OPTION);
             if (createNamed == null && remove == null) {
                 System.err.println("Either --%s or --%s is required".formatted(CREATE_PLAYLIST_OPTION.getLongOpt(),
                         DELETE_PLAYLIST_OPTION.getLongOpt()));

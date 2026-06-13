@@ -22,7 +22,7 @@ import io.github.defective4.audioanalyzer.ml.model.ModelMetadata;
 public class ModelLoader {
 
     public static final Map<String, String> REQUIRED_MODEL_FILES = CLI.map("discogs-effnet-bs64-1.pb",
-            "feature-extractors/discogs-effnet-bs64-1.pb", "other/genre_discogs400-discogs-effnet-1.json",
+            "feature-extractors/discogs-effnet/discogs-effnet-bs64-1.pb", "other/genre_discogs400-discogs-effnet-1.json",
             "classification-heads/genre_discogs400/genre_discogs400-discogs-effnet-1.json",
             "other/mtg_jamendo_moodtheme-discogs-effnet-1.json",
             "classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json",

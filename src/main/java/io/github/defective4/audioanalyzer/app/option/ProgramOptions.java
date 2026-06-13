@@ -1,6 +1,9 @@
 package io.github.defective4.audioanalyzer.app.option;
 
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 
 import io.github.defective4.audioanalyzer.expr.EnumConverter;
 import io.github.defective4.audioanalyzer.expr.IntegerExpressionConverter;
+import io.github.defective4.audioanalyzer.expr.URLConverter;
 import io.github.defective4.audioanalyzer.format.PrintFormat;
 
 public class ProgramOptions {
@@ -33,6 +37,7 @@ public class ProgramOptions {
     public static final String DEFAULT_DB = "./mood.sqlite";
     public static final String DEFAULT_ESSENTIA = "http://127.0.0.1:8000/";
     public static final int DEFAULT_LIMIT = 30;
+    public static final URL DEFAULT_MODELS_BASE_URL;
     @EnvironmentVariable("PLAYLIST_DELETE")
     public static final Option DELETE_PLAYLIST_OPTION;
     public static final Options ENV_OPTIONS;
@@ -74,26 +79,24 @@ public class ProgramOptions {
     @EnvironmentVariable("GEN_VOCAL_FILTER")
     public static final Option GEN_VOCALITY_FILTER_OPTION;
     public static final Options GENERATOR_OPTIONS;
-
     public static final Option HELP_OPTION;
+    @EnvironmentVariable("MODELS_BASE_URL")
+    public static final Option MODELS_BASE_URL;
+    public static final Options MODELS_OPTIONS;
+    @EnvironmentVariable("MODELS_UPDATE")
+    public static final Option MODELS_UPDATE;
     @EnvironmentVariable(value = "SUBSONIC_PASSWORD", sensitive = true)
     public static final Option PASSWORD_OPTION;
-
     public static final Options PLAYLIST_OPTIONS;
-
     @EnvironmentVariable("STATS_OUTPUT_FILE")
     public static final Option ST_OUTPUT_OPTION;
     @EnvironmentVariable("STATS_FORMAT")
     public static final Option ST_PRINT_FORMAT_OPTION;
-
     @EnvironmentVariable("STATS_SONG")
     public static final Option ST_SONG_OPTION;
-
     public static final Options STATS_OPTIONS;
-
     @EnvironmentVariable(value = "SUBSONIC_URL", sensitive = true)
     public static final Option SUBSONIC_URL_OPTION;
-
     @EnvironmentVariable(value = "SUBSONIC_USER", sensitive = true)
     public static final Option USER_OPTION;
 
@@ -101,6 +104,15 @@ public class ProgramOptions {
 
     static {
         // Define options
+        try {
+            DEFAULT_MODELS_BASE_URL = URI.create("https://essentia.upf.edu/models/").toURL();
+        } catch (MalformedURLException e1) {
+            throw new IllegalStateException(e1);
+        }
+        MODELS_BASE_URL = Option.builder().longOpt("base-url").numberOfArgs(1).argName("url")
+                .converter(new URLConverter())
+                .desc("Base update URL for models. (Default: %s)".formatted(DEFAULT_MODELS_BASE_URL)).build();
+        MODELS_UPDATE = Option.builder("u").longOpt("update").desc("Update Essentia model files").build();
         GEN_PRINT_JSON_OPTION = Option.builder("j").desc("Print data about resultling playlist in JSON format").build();
         DELETE_PLAYLIST_OPTION = Option.builder("r").argName("playlist").numberOfArgs(1).longOpt("delete-playlist")
                 .desc("Delete a playlist by its name or ID.").build();
@@ -200,8 +212,7 @@ public class ProgramOptions {
                 .addOption(GEN_SIMILAR_SONG_OPTION).addOption(GEN_SAME_GENRE_OPTION).addOption(GEN_SAME_MOOD_OPTION)
                 .addOption(GEN_SAME_INSTRUMENT_OPTION).addOption(GEN_SIMILAR_INCLUDE_BPM)
                 .addOption(GEN_BPM_FILTER_OPTION).addOption(SUBSONIC_URL_OPTION).addOption(GEN_VOCALITY_FILTER_OPTION)
-                .addOption(GEN_SAME_ARTIST_OPTION).addOption(FILTER_ARTIST_OPTION)
-                .addOption(GEN_SHUFFLE_SIMILAR_OPTION)
+                .addOption(GEN_SAME_ARTIST_OPTION).addOption(FILTER_ARTIST_OPTION).addOption(GEN_SHUFFLE_SIMILAR_OPTION)
                 .addOption(GEN_PRINT_JSON_OPTION);
         STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
                 .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
@@ -209,6 +220,7 @@ public class ProgramOptions {
         PLAYLIST_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ProgramOptions.USER_OPTION)
                 .addOption(ProgramOptions.PASSWORD_OPTION).addOption(SUBSONIC_URL_OPTION)
                 .addOption(CREATE_PLAYLIST_OPTION).addOption(DELETE_PLAYLIST_OPTION);
+        MODELS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(MODELS_UPDATE).addOption(MODELS_BASE_URL);
 
         ENV_VARIABLES = getEnvironmentVariables();
     }

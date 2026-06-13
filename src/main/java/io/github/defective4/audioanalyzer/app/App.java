@@ -9,6 +9,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -145,7 +148,18 @@ public class App {
         }
     }
 
-    public void checkModels() throws IOException {
+    public void checkModels(boolean update, String baseURL) throws IOException {
+        if (update) {
+            for (Entry<String, String> entry : ModelLoader.REQUIRED_MODEL_FILES.entrySet()) {
+                URL url = URI.create(baseURL + entry.getValue()).toURL();
+                try (InputStream in = url.openStream()) {
+                    logger.info("Downloading {}...", url);
+                    File target = new File(modelLoader.getModelsPath().toFile(), entry.getKey());
+                    if (target.getParentFile() != null) target.getParentFile().mkdirs();
+                    Files.copy(in, target.toPath());
+                }
+            }
+        }
         int missing = 0;
         StringWriter writer = new StringWriter();
         try (PrintWriter pw = new PrintWriter(writer)) {

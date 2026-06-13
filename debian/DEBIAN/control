@@ -6,5 +6,5 @@ Description: Essentia Tensorflow powered music analysis tool for Subsonic-compat
 Architecture: amd64
 Homepage: https://github.com/Defective4/subsonic-audio-analyzer
 Bugs: https://github.com/Defective4/subsonic-audio-analyzer/issues
-Pre-Depends: python3-venv (>= 3.0.0), python3-pip (>= 25.0.0), bash (>= 1.0.0), curl (>= 8.0.0)
+Pre-Depends: python3-venv (>= 3.0.0), python3-pip (>= 25.0.0), bash (>= 1.0.0)
 Installed-Size: 200000
