@@ -51,6 +51,8 @@ public class ProgramOptions {
     @EnvironmentVariable("GEN_MOOD_FILTER")
     public static final Option GEN_MOOD_FILTER_OPTION;
     public static final Option GEN_NAME_OPTION;
+    @EnvironmentVariable("GEN_PRINT_JSON")
+    public static final Option GEN_PRINT_JSON_OPTION;
     @EnvironmentVariable("GEN_PUBLIC")
     public static final Option GEN_PUBLIC_OPTION;
     @EnvironmentVariable("GEN_REPLACE_PLAYLIST")
@@ -99,6 +101,7 @@ public class ProgramOptions {
 
     static {
         // Define options
+        GEN_PRINT_JSON_OPTION = Option.builder("j").desc("Print data about resultling playlist in JSON format").build();
         DELETE_PLAYLIST_OPTION = Option.builder("r").argName("playlist").numberOfArgs(1).longOpt("delete-playlist")
                 .desc("Delete a playlist by its name or ID.").build();
         CREATE_PLAYLIST_OPTION = Option.builder("c").argName("name").numberOfArgs(1).longOpt("create-playlist")
@@ -198,7 +201,8 @@ public class ProgramOptions {
                 .addOption(GEN_SAME_INSTRUMENT_OPTION).addOption(GEN_SIMILAR_INCLUDE_BPM)
                 .addOption(GEN_BPM_FILTER_OPTION).addOption(SUBSONIC_URL_OPTION).addOption(GEN_VOCALITY_FILTER_OPTION)
                 .addOption(GEN_SAME_ARTIST_OPTION).addOption(FILTER_ARTIST_OPTION)
-                .addOption(GEN_SHUFFLE_SIMILAR_OPTION);
+                .addOption(GEN_SHUFFLE_SIMILAR_OPTION)
+                .addOption(GEN_PRINT_JSON_OPTION);
         STATS_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ST_PRINT_FORMAT_OPTION)
                 .addOption(ST_SONG_OPTION).addOption(ST_OUTPUT_OPTION);
         ENV_OPTIONS = new Options().addOptions(COMMON_OPTIONS).addOption(ENV_UNCENSOR_OPTION);

@@ -143,8 +143,8 @@ public class App {
     public void groupTracks(String baseSong, String moodFilter, String instrumentFilter, String genreFilter,
             String playlistName, String replacePlaylist, int limit, boolean newPublic, boolean sameGenre,
             boolean sameMood, boolean sameInstrument, boolean includeTempo, NumericExpression bpmExpr,
-            NumericExpression vocalExpr, boolean sameArtist, String filterArtist, boolean shuffleSimilar)
-            throws SQLException, IOException, InterruptedException {
+            NumericExpression vocalExpr, boolean sameArtist, String filterArtist, boolean shuffleSimilar,
+            boolean printJSON) throws SQLException, IOException, InterruptedException {
         checkAPI();
         if (db.getAnalysisState() == AnalysisState.UNANALYZED) {
             logger.error(ERROR_UNANALYZED);
@@ -285,6 +285,8 @@ public class App {
         logger.info("Adding songs to the playlist...");
         for (Track t : similar) api.updatePlaylist(playlist.id(), t.id(), -1, pub);
         logger.info("Added {} songs to playlist {}!", similar.size(), playlist.name());
+
+        if (printJSON) System.out.println(gson.toJson(playlist));
     }
 
     public void managePlaylist(String createNamed, String remove) throws IOException {
@@ -307,7 +309,7 @@ public class App {
                     throw e;
                 }
             }
-            if(toRemove!=null) {
+            if (toRemove != null) {
                 logger.info("Deleting playlist \"{}\"", toRemove.name());
                 api.deletePlaylist(toRemove.id());
                 logger.info("Playlist deleted!");

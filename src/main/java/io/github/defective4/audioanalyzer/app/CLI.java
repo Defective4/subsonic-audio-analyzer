@@ -72,9 +72,10 @@ public class CLI {
             boolean sameArtist = hasOption(cli, GEN_SAME_ARTIST_OPTION);
             String filterPlaylist = getOptionValue(cli, FILTER_ARTIST_OPTION);
             boolean shuffleSimilar = hasOption(cli, GEN_SHUFFLE_SIMILAR_OPTION);
+            boolean printJSON = hasOption(cli, GEN_PRINT_JSON_OPTION);
             prog.groupTracks(song, mood, instrument, genre, playlistName, replacePlaylist, limit, newPublic,
                     similarGenre, similarMood, similarInstrument, tempo, bpmExpr, vocalExpr, sameArtist, filterPlaylist,
-                    shuffleSimilar);
+                    shuffleSimilar, printJSON);
             return true;
         }
 
